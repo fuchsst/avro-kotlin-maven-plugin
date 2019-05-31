@@ -1,0 +1,5 @@
+**/target
+.idea
+**.iml
+**/resources/*backup*.xml
+**/generated-sources
