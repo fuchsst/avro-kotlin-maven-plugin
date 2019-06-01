@@ -4,9 +4,8 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import net.stefanfuchs.avro.mavenplugin.model.FieldNames
-import net.stefanfuchs.avro.mavenplugin.model.FieldTypes
+import net.stefanfuchs.avro.mavenplugin.model.FieldType
 import net.stefanfuchs.avro.mavenplugin.model.LocicalFieldType
-import net.stefanfuchs.avro.mavenplugin.model.PrimitiveFieldType
 import net.stefanfuchs.avro.mavenplugin.model.SortOrder
 
 
@@ -24,8 +23,12 @@ sealed class AvroSchemaItem {
             require(json is JsonObject)
             require(hasTypeField(json))
             val typeString = getTypeString(json).toLowerCase()
-            return if (hasLogicalTypeField(json)) {
-                when (getLogicalTypeString(json).toLowerCase()) {
+            return when (typeString) {
+                FieldType.RECORD.code -> AvroSchemaItemRecord(json)
+                FieldType.ENUM.code -> AvroSchemaItemEnum(json)
+                FieldType.MAP.code -> AvroSchemaItemMap(json)
+                FieldType.FIXED.code -> AvroSchemaItemFixed(json)
+                else -> when (getLogicalTypeString(json)?.toLowerCase()) {
                     LocicalFieldType.DURATION.code -> AvroSchemaItemLogicTypeFixedDuration(json)
                     LocicalFieldType.DATE.code -> AvroSchemaItemLogicTypeIntDate(json)
                     LocicalFieldType.DECIMAL.code -> AvroSchemaItemLogicTypeBytesDecimal(json)
@@ -36,14 +39,6 @@ sealed class AvroSchemaItem {
                     LocicalFieldType.UUID.code -> AvroSchemaItemLogicTypeStringUuid(json)
                     else -> null
                 }
-            } else {
-                when (typeString) {
-                    FieldTypes.RECORD.code -> AvroSchemaItemRecord(json)
-                    FieldTypes.ENUM.code -> AvroSchemaItemEnum(json)
-                    FieldTypes.MAP.code -> AvroSchemaItemMap(json)
-                    FieldTypes.FIXED.code -> AvroSchemaItemFixed(json)
-                    else -> null
-                }
             }
         }
 
@@ -51,13 +46,16 @@ sealed class AvroSchemaItem {
         fun getTypeString(asJsonObject: JsonObject) =
                 asJsonObject.get(FieldNames.TYPE.code).asString
 
-        fun hasLogicalTypeField(jsonObject: JsonObject) = jsonObject.has(FieldNames.LOGICALTYPE.code)
-        fun getLogicalTypeString(jsonObject: JsonObject) =
-                jsonObject.get(FieldNames.LOGICALTYPE.code).asString
+        fun hasLogicalTypeField(jsonObject: JsonObject): Boolean = jsonObject.keySet().map { it.toLowerCase() }.contains(FieldNames.LOGICALTYPE.code)
+        fun getLogicalTypeString(jsonObject: JsonObject): String {
+            val jsonKey = jsonObject.keySet().find { it.toLowerCase() == FieldNames.LOGICALTYPE.code }
+            return jsonObject[jsonKey].asString
+        }
 
     }
 
     abstract fun isValid(): Boolean
+
 
     abstract class NamedAvroSchemaItem(val jsonObject: JsonObject) : AvroSchemaItem() {
         val type: AvroSchemaItem? by lazy {
@@ -95,6 +93,13 @@ sealed class AvroSchemaItem {
             }
         }
 
+        abstract val fieldsAsStrings: List<String?>
+
+        override fun toString(): String {
+            return fieldsAsStrings
+                    .filterNotNull()
+                    .joinToString(",", "{ ", "}")
+        }
     }
 
 
@@ -107,11 +112,11 @@ sealed class AvroSchemaItem {
             }
         }
 
-        val fields: List<Field>? by lazy {
-            if (jsonObject.has(FieldNames.ALIASES.code)) {
-                jsonObject.get(FieldNames.ALIASES.code)
+        val fields: List<AvroSchemaItemRecordField>? by lazy {
+            if (jsonObject.has(FieldNames.FIELDS.code)) {
+                jsonObject.get(FieldNames.FIELDS.code)
                         .asJsonArray
-                        .map { Field(it.asJsonObject) }
+                        .map { AvroSchemaItemRecordField(it.asJsonObject) }
             } else {
                 null
             }
@@ -119,9 +124,27 @@ sealed class AvroSchemaItem {
 
         override fun isValid(): Boolean = name != null && namespace != null && fields != null
 
+        override val fieldsAsStrings = listOf(
+                if (namespace != null) """ "namespace": "$namespace" """ else null,
+                if (name != null) """ "name": "$name" """ else null,
+                if (type != null) """ "type": $type """ else null,
+                if (aliases != null) """ "aliases": $aliases """ else null,
+                if (doc != null) """ "doc": "$doc" """ else null,
+                if (fields != null) """ "fields": $fields """ else null
+        )
+
     }
 
-    class Field(jsonObject: JsonObject) : NamedAvroSchemaItem(jsonObject) {
+    class AvroSchemaItemRecordField(jsonObject: JsonObject) : NamedAvroSchemaItem(jsonObject) {
+        val logicalType: LocicalFieldType? by lazy {
+            if (hasLogicalTypeField(jsonObject)) {
+                val logicalTypeString = getLogicalTypeString(jsonObject)?.toLowerCase()
+                LocicalFieldType.values().firstOrNull { it.code == logicalTypeString }
+            } else {
+                null
+            }
+        }
+
         val order: SortOrder? by lazy {
             if (jsonObject.has(FieldNames.SORTORDER.code)) {
                 val jsonElement = jsonObject.get(FieldNames.SORTORDER.code)
@@ -142,6 +165,15 @@ sealed class AvroSchemaItem {
         }
 
         override fun isValid(): Boolean = name != null && type != null
+
+        override val fieldsAsStrings = listOf(
+                if (name != null) """ "name": "$name" """ else null,
+                if (type != null) """ "type": $type """ else null,
+                if (aliases != null) """ "aliases": $aliases """ else null,
+                if (doc != null) """ "doc": "$doc" """ else null,
+                if (default != null) """ "default": "$default" """ else null,
+                if (order != null) """ "order": "$order" """ else null
+        )
     }
 
     class AvroSchemaItemEnum(jsonObject: JsonObject) : NamedAvroSchemaItem(jsonObject) {
@@ -175,9 +207,28 @@ sealed class AvroSchemaItem {
         override fun isValid(): Boolean = name != null &&
                 namespace != null &&
                 symbols?.isNotEmpty() ?: false
+
+        override val fieldsAsStrings = listOf(
+                if (namespace != null) """ "namespace": "$namespace" """ else null,
+                if (name != null) """ "name": "$name" """ else null,
+                if (type != null) """ "type": $type """ else null,
+                if (aliases != null) """ "aliases": $aliases """ else null,
+                if (doc != null) """ "doc": "$doc" """ else null,
+                if (default != null) """ "default": "$default" """ else null,
+                if (symbols != null) """ "symbols": $symbols """ else null
+        )
     }
 
     class AvroSchemaItemArray(jsonObject: JsonObject) : AvroSchemaItem() {
+        val type: AvroSchemaItem? by lazy {
+            if (jsonObject.has(FieldNames.TYPE.code)) {
+                val jsonElement = jsonObject.get(FieldNames.TYPE.code)
+                parse(jsonElement)
+            } else {
+                null
+            }
+        }
+
         val items: AvroSchemaItem? by lazy {
             if (jsonObject.has(FieldNames.ITEMS.code)) {
                 parse(jsonObject.get(FieldNames.ITEMS.code))
@@ -187,9 +238,26 @@ sealed class AvroSchemaItem {
         }
 
         override fun isValid(): Boolean = items != null
+
+        override fun toString(): String {
+            return listOfNotNull(
+                    if (type != null) """ "type": $type """ else null,
+                    if (items != null) """ "items": $items """ else null
+            )
+                    .joinToString(",", "{ ", "}")
+        }
     }
 
     class AvroSchemaItemMap(jsonObject: JsonObject) : AvroSchemaItem() {
+        val type: AvroSchemaItem? by lazy {
+            if (jsonObject.has(FieldNames.TYPE.code)) {
+                val jsonElement = jsonObject.get(FieldNames.TYPE.code)
+                parse(jsonElement)
+            } else {
+                null
+            }
+        }
+
         val values: AvroSchemaItem? by lazy {
             if (jsonObject.has(FieldNames.VALUES.code)) {
                 parse(jsonObject.get(FieldNames.VALUES.code))
@@ -199,6 +267,14 @@ sealed class AvroSchemaItem {
         }
 
         override fun isValid(): Boolean = values != null
+
+        override fun toString(): String {
+            return listOfNotNull(
+                    if (type != null) """ "type": $type """ else null,
+                    if (values != null) """ "items": $values """ else null
+            )
+                    .joinToString(",", "{ ", "}")
+        }
     }
 
     class AvroSchemaItemUnion(val jsonArray: JsonArray) : AvroSchemaItem() {
@@ -207,7 +283,7 @@ sealed class AvroSchemaItem {
                 val alltypes = jsonArray.map { parse(it) }
                 if (isNullable) {
                     alltypes
-                            .filterNot { it is AvroSchemaItemPrimitive && it.fieldType == PrimitiveFieldType.NULL }
+                            .filterNot { it is AvroSchemaItemPrimitive && it.fieldType == FieldType.NULL }
                 } else {
                     alltypes
                 }
@@ -221,7 +297,7 @@ sealed class AvroSchemaItem {
             if (firstElement != null) {
                 val parsedElement = parse(firstElement)
                 parsedElement is AvroSchemaItemPrimitive &&
-                        parsedElement.fieldType == PrimitiveFieldType.NULL
+                        parsedElement.fieldType == FieldType.NULL
             } else {
                 false
             }
@@ -238,8 +314,16 @@ sealed class AvroSchemaItem {
                                 this has been checked on assignment and the element removed,
                                 instead null is indicated by the separate field [isNullable]
                                  **/
-                                !(it is AvroSchemaItemPrimitive && it.fieldType == PrimitiveFieldType.NULL)
+                                !(it is AvroSchemaItemPrimitive && it.fieldType == FieldType.NULL)
                     })
+        }
+
+        override fun toString(): String {
+            return listOfNotNull(
+                    if (isNullable) "null" else null,
+                    if (types != null) types!!.map { """"$it """" }.joinToString { "," } else null
+            )
+                    .joinToString(",", "[ ", "]")
         }
     }
 
@@ -255,19 +339,31 @@ sealed class AvroSchemaItem {
         override fun isValid(): Boolean {
             TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
+
+        override val fieldsAsStrings = listOf(
+                if (name != null) """ "name": "$name" """ else null,
+                if (type != null) """ "type": $type """ else null,
+                if (aliases != null) """ "aliases": $aliases """ else null,
+                if (doc != null) """ "doc": "$doc" """ else null,
+                if (size != null) """ "default": "$size" """ else null
+        )
     }
 
-    class AvroSchemaItemPrimitive(val rawString: String) : AvroSchemaItem() {
-        val fieldType: PrimitiveFieldType? by lazy {
-            PrimitiveFieldType.values().find { rawString.toLowerCase() == it.code }
+    data class AvroSchemaItemPrimitive(val rawString: String) : AvroSchemaItem() {
+        val fieldType: FieldType? by lazy {
+            FieldType.values().find { rawString.toLowerCase() == it.code }
         }
 
         override fun isValid(): Boolean = true
-        fun isKnownFieldType(): Boolean = rawString.toLowerCase() in PrimitiveFieldType.values().map { it.code }
+        fun isKnownFieldType(): Boolean = fieldType != null
+
+        override fun toString(): String {
+            return """"${if (isKnownFieldType()) fieldType!!.code else rawString}""""
+        }
     }
 
 
-    abstract class AvroSchemaItemLogicType(jsonObject: JsonObject) : AvroSchemaItem() {
+    abstract class AbstractAvroSchemaItemLogicType(jsonObject: JsonObject) : AvroSchemaItem() {
         val type: AvroSchemaItem? by lazy {
             if (jsonObject.has(FieldNames.TYPE.code)) {
                 val jsonElement = jsonObject.get(FieldNames.TYPE.code)
@@ -286,10 +382,21 @@ sealed class AvroSchemaItem {
             }
         }
 
+        open val fieldsAsStrings: List<String?> = listOf(
+                if (type != null) """ "type": $type """ else null,
+                if (logicalType != null) """ "logicalType": $logicalType """ else null
+        )
 
+        override fun toString(): String {
+            return fieldsAsStrings
+                    .filterNotNull()
+                    .joinToString(",", "{ ", "}")
+
+
+        }
     }
 
-    class AvroSchemaItemLogicTypeBytesDecimal(jsonObject: JsonObject) : AvroSchemaItemLogicType(jsonObject) {
+    data class AvroSchemaItemLogicTypeBytesDecimal(private val jsonObject: JsonObject) : AbstractAvroSchemaItemLogicType(jsonObject) {
         val precision: Int? by lazy {
             if (jsonObject.has(FieldNames.PRECISION.code)) {
                 jsonObject.get(FieldNames.PRECISION.code).asInt
@@ -307,33 +414,40 @@ sealed class AvroSchemaItem {
         }
 
         override fun isValid(): Boolean = precision != null
+
+
+        override val fieldsAsStrings: List<String?> = super.fieldsAsStrings + listOf(
+                if (precision != null) """ "precision": $precision """ else null,
+                if (scale != null) """ "scale": $scale """ else null
+        )
+
     }
 
-    class AvroSchemaItemLogicTypeStringUuid(jsonObject: JsonObject) : AvroSchemaItemLogicType(jsonObject) {
+    data class AvroSchemaItemLogicTypeStringUuid(private val jsonObject: JsonObject) : AbstractAvroSchemaItemLogicType(jsonObject) {
         override fun isValid(): Boolean = true
     }
 
-    class AvroSchemaItemLogicTypeIntDate(jsonObject: JsonObject) : AvroSchemaItemLogicType(jsonObject) {
+    class AvroSchemaItemLogicTypeIntDate(jsonObject: JsonObject) : AbstractAvroSchemaItemLogicType(jsonObject) {
         override fun isValid(): Boolean = true
     }
 
-    class AvroSchemaItemLogicTypeIntTimeMillis(jsonObject: JsonObject) : AvroSchemaItemLogicType(jsonObject) {
+    class AvroSchemaItemLogicTypeIntTimeMillis(jsonObject: JsonObject) : AbstractAvroSchemaItemLogicType(jsonObject) {
         override fun isValid(): Boolean = true
     }
 
-    class AvroSchemaItemLogicTypeIntTimeMicros(jsonObject: JsonObject) : AvroSchemaItemLogicType(jsonObject) {
+    class AvroSchemaItemLogicTypeIntTimeMicros(jsonObject: JsonObject) : AbstractAvroSchemaItemLogicType(jsonObject) {
         override fun isValid(): Boolean = true
     }
 
-    class AvroSchemaItemLogicTypeIntTimestampMillis(jsonObject: JsonObject) : AvroSchemaItemLogicType(jsonObject) {
+    class AvroSchemaItemLogicTypeIntTimestampMillis(jsonObject: JsonObject) : AbstractAvroSchemaItemLogicType(jsonObject) {
         override fun isValid(): Boolean = true
     }
 
-    class AvroSchemaItemLogicTypeIntTimestampMicros(jsonObject: JsonObject) : AvroSchemaItemLogicType(jsonObject) {
+    class AvroSchemaItemLogicTypeIntTimestampMicros(jsonObject: JsonObject) : AbstractAvroSchemaItemLogicType(jsonObject) {
         override fun isValid(): Boolean = true
     }
 
-    class AvroSchemaItemLogicTypeFixedDuration(jsonObject: JsonObject) : AvroSchemaItemLogicType(jsonObject) {
+    class AvroSchemaItemLogicTypeFixedDuration(jsonObject: JsonObject) : AbstractAvroSchemaItemLogicType(jsonObject) {
         val size: Int? by lazy {
             if (jsonObject.has(FieldNames.SIZE.code)) {
                 jsonObject.get(FieldNames.SIZE.code).asInt
@@ -350,5 +464,10 @@ sealed class AvroSchemaItem {
         }
 
         override fun isValid(): Boolean = true
+
+        override val fieldsAsStrings: List<String?> = super.fieldsAsStrings + listOf(
+                if (name != null) """ "name": "$name" """ else null,
+                if (size != null) """ "size": $size """ else null
+        )
     }
 }

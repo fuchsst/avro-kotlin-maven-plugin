@@ -1,6 +1,6 @@
 package net.stefanfuchs.avro.mavenplugin.model
 
-enum class FieldTypes {
+enum class FieldType(val isPrimitive: Boolean = false) {
     /** a map String->Any **/
     MAP,
     /** class **/
@@ -13,8 +13,16 @@ enum class FieldTypes {
     UNION,
     /** bytearray **/
     FIXED,
-    /** one of the types listed in [PrimitiveFieldType] **/
-    PRIMITIVE;
+    /** primitive types **/
+    NULL(true),
+    BOOLEAN(true),
+    INT(true),
+    LONG(true),
+    FLOAT(true),
+    DOUBLE(true),
+    BYTES(true),
+    STRING(true),
+    OTHER_PRIMITIVE(true);
 
     val code = this.name.toLowerCase()
 }
