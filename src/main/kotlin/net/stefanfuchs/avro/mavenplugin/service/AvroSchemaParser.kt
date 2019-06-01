@@ -14,8 +14,8 @@ class AvroSchemaParser(val reader: Reader) {
      * Stars the parsing. Expects that reader returns a JSON
      * where the top level object is a Avro Record
      */
-    fun parse(): AvroSchemaItem.Record {
+    fun parse(): AvroSchemaItem.AvroSchemaItemRecord {
         val root = JsonParser().parse(reader).asJsonObject
-        return AvroSchemaItem.Record(root)
+        return AvroSchemaItem.AvroSchemaItemRecord(root)
     }
 }

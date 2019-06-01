@@ -1,18 +1,19 @@
 package net.stefanfuchs.avro.mavenplugin.model
 
-enum class FieldNames {
-    TYPE,
-    NAME,
-    ALIASES,
-    FIELDS,
-    NAMESPACE,
-    DOC,
-    SORTORDER,
-    DEFAULT,
-    SYMBOLS,
-    ITEMS,
-    VALUES,
-    SIZE;
-
-    val code = this.name.toLowerCase()
+enum class FieldNames(val code: String) {
+    TYPE("type"),
+    NAME("name"),
+    ALIASES("aliases"),
+    FIELDS("fields"),
+    NAMESPACE("namespace"),
+    DOC("doc"),
+    SORTORDER("sortorder"),
+    DEFAULT("default"),
+    SYMBOLS("symbols"),
+    ITEMS("items"),
+    VALUES("values"),
+    SIZE("size"),
+    LOGICALTYPE("logicaltype"),
+    PRECISION("precision"),
+    SCALE("scale");
 }
