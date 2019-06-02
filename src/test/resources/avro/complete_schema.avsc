@@ -1,0 +1,30 @@
+{
+  "type": "record",
+  "name": "TestAvroClass",
+  "namespace": "net.stefanfuchs.avro.mavenplugin.test.pkg",
+  "fields": [
+    {
+      "name" : "Field1",
+      "type": "int"
+    },
+    {
+      "name": "Field2",
+      "type": "long",
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "Field3",
+      "type": {
+        "type" : "map",
+        "values": "string"
+      }
+    },
+    {
+      "name": "Field4",
+      "type": [
+        "null",
+        "string"
+      ]
+    }
+  ]
+}
