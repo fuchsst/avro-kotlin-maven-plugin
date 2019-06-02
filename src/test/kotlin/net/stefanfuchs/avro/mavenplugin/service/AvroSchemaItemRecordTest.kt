@@ -1,8 +1,8 @@
 package net.stefanfuchs.avro.mavenplugin.service
 
 import com.google.gson.JsonParser
-import net.stefanfuchs.avro.mavenplugin.model.FieldType
-import net.stefanfuchs.avro.mavenplugin.model.LocicalFieldType
+import net.stefanfuchs.avro.mavenplugin.model.input.FieldType
+import net.stefanfuchs.avro.mavenplugin.model.input.LocicalFieldType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -16,18 +16,17 @@ class AvroSchemaItemRecordTest {
     @Test
     fun `NamedAvroSchemaItem TYPE returns AvroSchemaItem when present`() {
         val given = JsonParser().parse("""{ "type": "long" }""").asJsonObject
-        val actual = AvroSchemaItem.AvroSchemaItemRecord(given).type
+        val actual = AvroSchemaItem.AvroSchemaItemRecordField(given).fieldDef?.fieldType
 
-        assert(actual is AvroSchemaItem.AvroSchemaItemPrimitive)
 
-        val expected = AvroSchemaItem.AvroSchemaItemPrimitive("long")
+        val expected = FieldType.LONG
         assertEquals(expected, actual)
     }
 
     @Test
     fun `NamedAvroSchemaItem TYPE returns NULL when not present`() {
         val given = JsonParser().parse("""{  }""").asJsonObject
-        val actual = AvroSchemaItem.AvroSchemaItemRecord(given).type
+        val actual = AvroSchemaItem.AvroSchemaItemRecordField(given).fieldDef
 
         assertNull(actual)
     }
@@ -106,12 +105,12 @@ class AvroSchemaItemRecordTest {
         val actual = AvroSchemaItem.AvroSchemaItemRecord(given).fields
 
         assertNotNull(actual)
-        assert(actual[0].type is AvroSchemaItem.AvroSchemaItemPrimitive)
-        assert(actual[1].type is AvroSchemaItem.AvroSchemaItemPrimitive)
+        assert(actual[0].fieldDef is AvroSchemaItem.AvroSchemaItemRecord)
+        assert(actual[1].fieldDef is AvroSchemaItem.AvroSchemaItemRecord)
         assertEquals("TestField", actual[0].name)
-        assertEquals(FieldType.LONG, (actual[0].type as AvroSchemaItem.AvroSchemaItemPrimitive).fieldType)
+        assertEquals(FieldType.LONG, actual[0].fieldDef?.fieldType)
         assertEquals("TestField2", actual[1].name)
-        assertEquals(FieldType.STRING, (actual[1].type as AvroSchemaItem.AvroSchemaItemPrimitive).fieldType)
+        assertEquals(FieldType.STRING, actual[1].fieldDef?.fieldType)
     }
 
     @Test
@@ -138,20 +137,27 @@ class AvroSchemaItemRecordTest {
         val actual = AvroSchemaItem.AvroSchemaItemRecord(given).fields
 
         assertNotNull(actual)
-        val testField = actual[0]
-        val testField2 = actual[1]
-        val testField2SubType = actual[1].type as AvroSchemaItem.AvroSchemaItemRecord
+        val (testField, testField2) = actual
+
+        val testFieldDef = (testField.fieldDef as AvroSchemaItem.AvroSchemaItemLogicTypeBytesDecimal)
+
+
+        assert(testField2.fieldDef is AvroSchemaItem.AvroSchemaItemRecord)
+        val testField2SubType = testField2.fieldDef as AvroSchemaItem.AvroSchemaItemRecord
 
         assertEquals("TestField", testField.name)
-        assertEquals(FieldType.BYTES, (testField.type as AvroSchemaItem.AvroSchemaItemPrimitive).fieldType)
-        assertEquals(LocicalFieldType.DECIMAL, testField.logicalType)
+        assertEquals(FieldType.BYTES, testFieldDef.fieldType)
+        assertEquals(LocicalFieldType.DECIMAL, testFieldDef.logicalType)
+        assertEquals(12, (testField.fieldDef as AvroSchemaItem.AvroSchemaItemLogicTypeBytesDecimal).precision)
+
+
         assertEquals("TestField2", testField2.name)
 
-        assertEquals(FieldType.RECORD, (testField2SubType.type as AvroSchemaItem.AvroSchemaItemPrimitive).fieldType)
+        assertEquals(FieldType.RECORD, testField2SubType.fieldType)
         assertEquals("TestField2.ExampleType", testField2SubType.name)
         assertEquals("test.namespace", testField2SubType.namespace)
         assertEquals("ExampleTypeField", testField2SubType.fields?.get(0)?.name)
-        assertEquals(FieldType.INT, (testField2SubType.fields?.get(0)?.type as AvroSchemaItem.AvroSchemaItemPrimitive).fieldType)
+        assertEquals(FieldType.INT, (testField2SubType.fields!![0].fieldDef as AvroSchemaItem.AvroSchemaItemRecord).fieldType)
     }
 
     @Test

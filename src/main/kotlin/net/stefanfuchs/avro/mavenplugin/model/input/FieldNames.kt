@@ -1,4 +1,4 @@
-package net.stefanfuchs.avro.mavenplugin.model
+package net.stefanfuchs.avro.mavenplugin.model.input
 
 enum class FieldNames(val code: String) {
     TYPE("type"),
@@ -13,7 +13,7 @@ enum class FieldNames(val code: String) {
     ITEMS("items"),
     VALUES("values"),
     SIZE("size"),
-    LOGICALTYPE("logicaltype"),
+    LOGICALTYPE("logicalType"),
     PRECISION("precision"),
     SCALE("scale");
 }

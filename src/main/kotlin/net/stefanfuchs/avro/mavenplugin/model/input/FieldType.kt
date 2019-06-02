@@ -1,4 +1,4 @@
-package net.stefanfuchs.avro.mavenplugin.model
+package net.stefanfuchs.avro.mavenplugin.model.input
 
 enum class FieldType(val isPrimitive: Boolean = false) {
     /** a map String->Any **/
@@ -22,7 +22,9 @@ enum class FieldType(val isPrimitive: Boolean = false) {
     DOUBLE(true),
     BYTES(true),
     STRING(true),
-    OTHER_PRIMITIVE(true);
+    CLASSNAME(true);
 
     val code = this.name.toLowerCase()
+    val isComplex: Boolean by lazy { this in listOf(MAP, RECORD, ARRAY, ENUM, UNION, FIXED) }
+    val isKnown: Boolean by lazy { this !in listOf(CLASSNAME) }
 }
