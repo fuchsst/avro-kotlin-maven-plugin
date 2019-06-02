@@ -4,7 +4,7 @@
   "namespace": "net.stefanfuchs.avro.mavenplugin.test.pkg",
   "fields": [
     {
-      "name" : "Field1",
+      "name": "Field1",
       "type": "int"
     },
     {
@@ -15,16 +15,31 @@
     {
       "name": "Field3",
       "type": {
-        "type" : "map",
+        "type": "map",
         "values": "string"
       }
     },
     {
       "name": "Field4",
+      "aliases": [
+        "Field4Alias"
+      ],
+      "type": {
+        "type": "array",
+        "items": "boolean"
+      }
+    },
+    {
+      "name": "Field5",
       "type": [
         "null",
         "string"
       ]
+    },
+    {
+      "name": "Field6",
+      "type": "int",
+      "logicalType": "date"
     }
   ]
 }

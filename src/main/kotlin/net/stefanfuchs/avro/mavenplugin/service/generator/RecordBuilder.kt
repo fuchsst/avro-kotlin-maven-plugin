@@ -2,63 +2,30 @@ package net.stefanfuchs.avro.mavenplugin.service.generator
 
 import org.apache.avro.Schema
 
-class RecordBuilder(val schema: Schema) {
+class RecordBuilder(val schema: Schema, val schemaRepository: MutableList<Schema>) {
+    val packageName: String = schema.namespace
+    val className: String = schema.name
+    val fullname: String = "${schema.namespace}.${schema.name}"
 
     init {
         require(schema.type == Schema.Type.RECORD)
-    }
-
-    val packageName = schema.namespace
-    val className = schema.name
-
-    fun Schema.Field.asConstructorVarString(): String {
-        return "val ${this.name()}: ${this.schema().type} ${if (this.hasDefaultValue()) "= " + this.defaultVal() else ""}"
-    }
-
-    fun Schema.Field.asAliasGeterSetter():String {
-        this
-                .aliases()
-                .map { """
-                var ${it}: ${this.schema().type}
-                    get() = this.${this.name()}
-                    set(value) {
-                        this.${this.name()} = value
-                    }
-                """.trimIndent() }
-
-        return """
-
-        """.trimIndent()
-    }
-
-    fun Schema.Field.asGetIndexFieldMapping(): String {
-        return "${this.pos()} -> this.${this.name()}"
-    }
-
-    fun Schema.Field.asPutIndexFieldMapping(): String {
-        return "${this.pos()} -> this.${this.name()} = `value\$` as ${this.schema().type}"
-    }
-
-    fun Schema.Field.asCustomEncoderPart(): String {
-        TODO("write converter for each field type")
-        return "${this.pos()} -> this.${this.name()} = `value\$` as ${this.schema().type}"
-    }
-
-    fun Schema.Field.asCustomDecoderPart(): String {
-        TODO("write converter for each field type")
-        return "${this.pos()} -> this.${this.name()} = `value\$` as ${this.schema().type}"
+//        require(schemaRepository.none { "${it.namespace}.${it.name}" == fullname })
+        schemaRepository.add(schema)
     }
 
 
-    fun Schema.Field.asCustomDecoderPartIndexedPart(): String {
-        return "${this.pos()} -> { ${this.asCustomDecoderPart()} }"
-    }
+    val doc: String = """
+        /**
+        ${schema.doc}
+        **/
+        """
 
 
-    private val code: String  by lazy {
+    val code: String  by lazy {
         """
         package ${packageName}
 
+        ${if (schema.doc?.isNotEmpty() == true) doc else ""}
         @org.apache.avro.specific.AvroGenerated
         data class ${className}(
            ${schema.fields.map { it.asConstructorVarString() }}
@@ -171,7 +138,7 @@ class RecordBuilder(val schema: Schema) {
                     ${schema.fields.map { it.asCustomDecoderPart() }}
 
                 } else {
-                    for (i in 0..${schema.fields.size-1}) {
+                    for (i in 0..${schema.fields.size - 1}) {
                         when (fieldOrder[i].pos()) {
                             ${schema.fields.map { it.asCustomDecoderPart() }}
                             else -> throw java.io.IOException("Corrupt ResolvingDecoder.")

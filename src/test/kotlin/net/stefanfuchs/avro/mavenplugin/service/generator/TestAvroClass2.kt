@@ -151,10 +151,8 @@ data class TestAvroClass(
                 m0.clear()
             while (0 < size0) {
                 while (size0 != 0L) {
-                    var k0: String? = null
-                    k0 = input.readString(org.apache.avro.util.Utf8(k0)).toString()
-                    var v0: String? = null
-                    v0 = input.readString(org.apache.avro.util.Utf8(v0)).toString()
+                    val k0: String = input.readString()
+                    val v0: String = input.readString()
                     m0[k0] = v0
                     size0--
                 }
@@ -165,7 +163,7 @@ data class TestAvroClass(
                 input.readNull()
                 this.Field4 = null
             } else {
-                this.Field4 = input.readString(org.apache.avro.util.Utf8(this.Field4)).toString()
+                this.Field4 = input.readString()
             }
 
         } else {
@@ -185,10 +183,8 @@ data class TestAvroClass(
                             m0.clear()
                         while (0 < size0) {
                             while (size0 != 0L) {
-                                var k0: String? = null
-                                k0 = input.readString(org.apache.avro.util.Utf8(k0)).toString()
-                                var v0: String? = null
-                                v0 = input.readString(org.apache.avro.util.Utf8(v0)).toString()
+                                val k0 = input.readString()
+                                val v0 = input.readString()
                                 m0[k0] = v0
                                 size0--
                             }
@@ -200,7 +196,7 @@ data class TestAvroClass(
                         input.readNull()
                         this.Field4 = null
                     } else {
-                        this.Field4 = input.readString(org.apache.avro.util.Utf8(this.Field4)).toString()
+                        this.Field4 = input.readString()
                     }
 
                     else -> throw java.io.IOException("Corrupt ResolvingDecoder.")
