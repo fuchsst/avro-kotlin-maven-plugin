@@ -1,6 +1,6 @@
 package net.stefanfuchs.avro.mavenplugin.model.input
 
-enum class LocicalFieldType(val code: String) {
+enum class LogicalFieldType(val code: String) {
     /** nullable field **/
     DECIMAL("decimal"),
     UUID("uuid"),

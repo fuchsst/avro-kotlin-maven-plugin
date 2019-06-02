@@ -5,7 +5,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import net.stefanfuchs.avro.mavenplugin.model.input.FieldNames
 import net.stefanfuchs.avro.mavenplugin.model.input.FieldType
-import net.stefanfuchs.avro.mavenplugin.model.input.LocicalFieldType
+import net.stefanfuchs.avro.mavenplugin.model.input.LogicalFieldType
 import net.stefanfuchs.avro.mavenplugin.model.input.SortOrder
 
 
@@ -36,14 +36,14 @@ sealed class AvroSchemaItem {
             require(json is JsonObject)
             require(hasTypeField(json))
             return when (getLogicalTypeString(json)?.toLowerCase()) {
-                LocicalFieldType.DURATION.code -> AvroSchemaItemLogicTypeFixedDuration(json)
-                LocicalFieldType.DATE.code -> AvroSchemaItemLogicTypeIntDate(json)
-                LocicalFieldType.DECIMAL.code -> AvroSchemaItemLogicTypeBytesDecimal(json)
-                LocicalFieldType.TIMESTAMP_MICROSECONDS.code -> AvroSchemaItemLogicTypeIntTimestampMicros(json)
-                LocicalFieldType.TIMESTAMP_MILLISECONDS.code -> AvroSchemaItemLogicTypeIntTimestampMillis(json)
-                LocicalFieldType.TIME_MICROSECONDS.code -> AvroSchemaItemLogicTypeIntTimeMicros(json)
-                LocicalFieldType.TIME_MILLISECONDS.code -> AvroSchemaItemLogicTypeIntTimeMillis(json)
-                LocicalFieldType.UUID.code -> AvroSchemaItemLogicTypeStringUuid(json)
+                LogicalFieldType.DURATION.code -> AvroSchemaItemLogicTypeFixedDuration(json)
+                LogicalFieldType.DATE.code -> AvroSchemaItemLogicTypeIntDate(json)
+                LogicalFieldType.DECIMAL.code -> AvroSchemaItemLogicTypeBytesDecimal(json)
+                LogicalFieldType.TIMESTAMP_MICROSECONDS.code -> AvroSchemaItemLogicTypeIntTimestampMicros(json)
+                LogicalFieldType.TIMESTAMP_MILLISECONDS.code -> AvroSchemaItemLogicTypeIntTimestampMillis(json)
+                LogicalFieldType.TIME_MICROSECONDS.code -> AvroSchemaItemLogicTypeIntTimeMicros(json)
+                LogicalFieldType.TIME_MILLISECONDS.code -> AvroSchemaItemLogicTypeIntTimeMillis(json)
+                LogicalFieldType.UUID.code -> AvroSchemaItemLogicTypeStringUuid(json)
                 else -> AvroSchemaItemRecord(json)
             }
         }
@@ -72,6 +72,11 @@ sealed class AvroSchemaItem {
     abstract val fieldType: FieldType
     abstract fun isValid(): Boolean
     abstract val fieldsAsStrings: List<String?>
+
+
+    override fun toString(): String {
+        return fieldsAsStrings.joinToString("")
+    }
 
 
     abstract class NamedAvroSchemaItem(jsonObject: JsonObject) : AvroSchemaItem() {
@@ -296,24 +301,24 @@ sealed class AvroSchemaItem {
             }
         }
 
-        val types: List<AvroSchemaItem?>? =
-                if (jsonArray.toList().isNotEmpty()) {
-                    val alltypes = jsonArray.map { parse(it) }
-                    if (isNullable) {
-                        alltypes
-                                .filterNot { it is AvroSchemaItemPrimitive && it.fieldType == FieldType.NULL }
-                    } else {
-                        alltypes
-                    }
+        val types: List<AvroSchemaItem?>? by lazy {
+            if (jsonArray.toList().isNotEmpty()) {
+                val alltypes = jsonArray.map { parse(it) }
+                if (isNullable) {
+                    alltypes
+                            .filterNot { it is AvroSchemaItemPrimitive && it.fieldType == FieldType.NULL }
                 } else {
-                    null
+                    alltypes
                 }
-
+            } else {
+                null
+            }
+        }
 
         override fun isValid(): Boolean {
             return types != null &&
-                    types.isNotEmpty() &&
-                    (types.all {
+                    types!!.isNotEmpty() &&
+                    (types!!.all {
                         it != null &&
                                 it.isValid() &&
                                 /** "null" primitive type is only allowed at the first position.
@@ -327,7 +332,7 @@ sealed class AvroSchemaItem {
         override val fieldsAsStrings: List<String?>
             get() = listOfNotNull(
                     if (isNullable) """"null"""" else null,
-                    types?.map { it.toString() }?.joinToString { "," }
+                    types?.map { it.toString() }?.joinToString(",")
             )
 
         override fun toString(): String {
@@ -367,7 +372,7 @@ sealed class AvroSchemaItem {
             )
 
         override fun toString(): String {
-            return fieldsAsStrings.joinToString { "," }
+            return fieldsAsStrings.joinToString(",")
         }
     }
 
@@ -379,13 +384,11 @@ sealed class AvroSchemaItem {
         fun isKnownFieldType(): Boolean = fieldType != FieldType.CLASSNAME
 
         override val fieldsAsStrings: List<String?>
-            get() = listOfNotNull(
-                    """"${if (isKnownFieldType()) fieldType.code else rawString}""""
-            )
+            get() = listOf(this.toString())
 
 
         override fun toString(): String {
-            return fieldsAsStrings.joinToString { "" }
+            return """"${if (isKnownFieldType()) fieldType.code else rawString}""""
 
         }
     }
@@ -400,10 +403,10 @@ sealed class AvroSchemaItem {
                     null
                 } ?: FieldType.CLASSNAME
 
-        val logicalType: LocicalFieldType? =
+        val logicalType: LogicalFieldType? =
                 if (jsonObject.has(FieldNames.LOGICALTYPE.code)) {
                     val logicTypeString = jsonObject.get(FieldNames.LOGICALTYPE.code).asString
-                    LocicalFieldType.values().find { it.code == logicTypeString }
+                    LogicalFieldType.values().find { it.code == logicTypeString }
                 } else {
                     null
                 }

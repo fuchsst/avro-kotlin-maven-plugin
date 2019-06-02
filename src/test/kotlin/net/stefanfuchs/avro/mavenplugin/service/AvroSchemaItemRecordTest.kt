@@ -2,7 +2,7 @@ package net.stefanfuchs.avro.mavenplugin.service
 
 import com.google.gson.JsonParser
 import net.stefanfuchs.avro.mavenplugin.model.input.FieldType
-import net.stefanfuchs.avro.mavenplugin.model.input.LocicalFieldType
+import net.stefanfuchs.avro.mavenplugin.model.input.LogicalFieldType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -101,7 +101,18 @@ class AvroSchemaItemRecordTest {
 
     @Test
     fun `NamedAvroSchemaItem FIELDS returns primitive FieldsList when present`() {
-        val given = JsonParser().parse("""{ "fields": [{ "name" : "TestField", "type": "long"}, { "name" : "TestField2", "type": "string"}  ] }""").asJsonObject
+        val given = JsonParser().parse("""
+            { "name" : "TestRecordType",
+              "type" : "record",
+              "fields": [
+                         { "name" : "TestField",
+                           "type": "long"
+                         },
+                         { "name" : "TestField2",
+                           "type": "string"
+                         }
+                        ]
+            }""".trimIndent()).asJsonObject
         val actual = AvroSchemaItem.AvroSchemaItemRecord(given).fields
 
         assertNotNull(actual)
@@ -117,6 +128,7 @@ class AvroSchemaItemRecordTest {
     fun `NamedAvroSchemaItem FIELDS returns complex FieldsList when present`() {
         val given = JsonParser().parse("""
             |{ "name" : "TestRecordType",
+            |  "namespace" : "Test.Package",
             |  "type" : "record",
             |  "fields": [
             |             { "name" : "TestField",
@@ -134,10 +146,11 @@ class AvroSchemaItemRecordTest {
             |             }
             |            ]
             |}""".trimMargin()).asJsonObject
-        val actual = AvroSchemaItem.AvroSchemaItemRecord(given).fields
+        val actual = AvroSchemaItem.AvroSchemaItemRecord(given)
 
         assertNotNull(actual)
-        val (testField, testField2) = actual
+        assertNotNull(actual.fields)
+        val (testField, testField2) = actual.fields!!
 
         val testFieldDef = (testField.fieldDef as AvroSchemaItem.AvroSchemaItemLogicTypeBytesDecimal)
 
@@ -145,9 +158,11 @@ class AvroSchemaItemRecordTest {
         assert(testField2.fieldDef is AvroSchemaItem.AvroSchemaItemRecord)
         val testField2SubType = testField2.fieldDef as AvroSchemaItem.AvroSchemaItemRecord
 
+        assertEquals("TestRecordType", actual.name)
+        assertEquals("Test.Package", actual.namespace)
         assertEquals("TestField", testField.name)
         assertEquals(FieldType.BYTES, testFieldDef.fieldType)
-        assertEquals(LocicalFieldType.DECIMAL, testFieldDef.logicalType)
+        assertEquals(LogicalFieldType.DECIMAL, testFieldDef.logicalType)
         assertEquals(12, (testField.fieldDef as AvroSchemaItem.AvroSchemaItemLogicTypeBytesDecimal).precision)
 
 
@@ -167,4 +182,6 @@ class AvroSchemaItemRecordTest {
 
         assertNull(actual)
     }
+
+
 }
