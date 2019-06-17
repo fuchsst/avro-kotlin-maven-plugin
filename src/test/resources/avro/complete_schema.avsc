@@ -4,25 +4,25 @@
   "namespace": "net.stefanfuchs.avro.mavenplugin.test.pkg",
   "fields": [
     {
-      "name": "Field1",
+      "name": "field1",
       "type": "int"
     },
     {
-      "name": "Field2",
+      "name": "field2",
       "type": "long",
       "logicalType": "timestamp-millis"
     },
     {
-      "name": "Field3",
+      "name": "field3",
       "type": {
         "type": "map",
         "values": "string"
       }
     },
     {
-      "name": "Field4",
+      "name": "field4",
       "aliases": [
-        "Field4Alias"
+        "field4Alias"
       ],
       "type": {
         "type": "array",
@@ -30,16 +30,32 @@
       }
     },
     {
-      "name": "Field5",
+      "name": "field5",
       "type": [
         "null",
         "string"
       ]
     },
     {
-      "name": "Field6",
+      "name": "field6",
       "type": "int",
       "logicalType": "date"
+    },
+    {
+      "name": "field7",
+      "type": [
+        "null",
+        {
+          "type": "enum",
+          "name": "Suit",
+          "symbols": [
+            "SPADES",
+            "HEARTS",
+            "DIAMONDS",
+            "CLUBS"
+          ]
+        }
+      ]
     }
   ]
 }

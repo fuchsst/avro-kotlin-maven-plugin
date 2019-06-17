@@ -1,5 +1,7 @@
 package net.stefanfuchs.avro.mavenplugin.service.generator
 
+import org.apache.avro.Schema
+
 
 @org.apache.avro.specific.AvroGenerated
 data class TestAvroClass(
@@ -224,8 +226,8 @@ data class TestAvroClass(
         val decoder = org.apache.avro.message.BinaryMessageDecoder<TestAvroClass>(model, classSchema)
 
         /**
-         * Create a new BinaryMessageDecoder instance for this class that uses the specified [SchemaStore].
-         * @param resolver a [SchemaStore] used to find schemas by fingerprint
+         * Create a new BinaryMessageDecoder instance for this class that uses the specified [org.apache.avro.message.SchemaStore].
+         * @param resolver a [org.apache.avro.message.SchemaStore] used to find schemas by fingerprint
          * @return a BinaryMessageDecoder instance for this class backed by the given SchemaStore
          */
         fun createDecoder(resolver: org.apache.avro.message.SchemaStore): org.apache.avro.message.BinaryMessageDecoder<TestAvroClass> {
@@ -247,5 +249,19 @@ data class TestAvroClass(
         private val `WRITER$` = model.createDatumWriter(classSchema) as org.apache.avro.io.DatumWriter<TestAvroClass>
 
         private val `READER$` = model.createDatumReader(classSchema) as org.apache.avro.io.DatumReader<TestAvroClass>
+    }
+}
+
+
+@org.apache.avro.specific.AvroGenerated
+enum class Suit : org.apache.avro.generic.GenericEnumSymbol<Suit> {
+    SPADES, HEARTS, DIAMONDS, CLUBS;
+
+    override fun getSchema(): Schema {
+        return classSchema
+    }
+
+    companion object {
+        val classSchema: org.apache.avro.Schema = org.apache.avro.Schema.Parser().parse("{\"type\":\"enum\",\"name\":\"Suit\",\"namespace\":\"net.stefanfuchs.avro.mavenplugin.test.pkg\",\"symbols\":[\"SPADES\",\"HEARTS\",\"DIAMONDS\",\"CLUBS\"]}");
     }
 }

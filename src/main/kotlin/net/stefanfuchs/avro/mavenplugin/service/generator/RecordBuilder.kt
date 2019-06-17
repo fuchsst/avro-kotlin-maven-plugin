@@ -2,7 +2,7 @@ package net.stefanfuchs.avro.mavenplugin.service.generator
 
 import org.apache.avro.Schema
 
-class RecordBuilder(val schema: Schema, val schemaRepository: MutableList<Schema>) {
+class RecordBuilder(val schema: Schema) {
     val packageName: String = schema.namespace
     val className: String = schema.name
     val fullname: String = "${schema.namespace}.${schema.name}"
@@ -10,7 +10,6 @@ class RecordBuilder(val schema: Schema, val schemaRepository: MutableList<Schema
     init {
         require(schema.type == Schema.Type.RECORD)
 //        require(schemaRepository.none { "${it.namespace}.${it.name}" == fullname })
-        schemaRepository.add(schema)
     }
 
 
@@ -21,23 +20,22 @@ class RecordBuilder(val schema: Schema, val schemaRepository: MutableList<Schema
         """
 
 
-    val code: String  by lazy {
-        """
+    fun build(): String {
+        return """
         package ${packageName}
 
         ${if (schema.doc?.isNotEmpty() == true) doc else ""}
         @org.apache.avro.specific.AvroGenerated
         data class ${className}(
-           ${schema.fields.map { it.asConstructorVarString() }}
+            ${schema.fields.map { it.asConstructorVarString() }.joinToString(",\n" + indendSpaces(3))}
         ) : org.apache.avro.specific.SpecificRecordBase(), org.apache.avro.specific.SpecificRecord {
-
-            ${schema.fields.map { it.asAliasGeterSetter() }}
+            ${schema.fields.map { it.asAliasGeterSetter() }.filterNotNull().joinToString("\n" + indendSpaces(3))}
 
             companion object {
                 private const val serialVersionUID = ${schema.hashCode()}L
                 private val model = org.apache.avro.specific.SpecificData()
 
-                val classSchema: org.apache.avro.Schema = org.apache.avro.Schema.Parser().parse("${schema}")
+                val classSchema: org.apache.avro.Schema = org.apache.avro.Schema.Parser().parse("${schema.toString().replace("\"", "\\\"")}")
 
                 /**
                  * Return the BinaryMessageEncoder instance used by this class.
@@ -52,8 +50,8 @@ class RecordBuilder(val schema: Schema, val schemaRepository: MutableList<Schema
                 val decoder = org.apache.avro.message.BinaryMessageDecoder<${className}>(model, classSchema)
 
                 /**
-                 * Create a new BinaryMessageDecoder instance for this class that uses the specified [SchemaStore].
-                 * @param resolver a [SchemaStore] used to find schemas by fingerprint
+                 * Create a new BinaryMessageDecoder instance for this class that uses the specified [org.apache.avro.message.SchemaStore].
+                 * @param resolver a [org.apache.avro.message.SchemaStore] used to find schemas by fingerprint
                  * @return a BinaryMessageDecoder instance for this class backed by the given SchemaStore
                  */
                 fun createDecoder(resolver: org.apache.avro.message.SchemaStore): org.apache.avro.message.BinaryMessageDecoder<${className}> {
@@ -112,7 +110,7 @@ class RecordBuilder(val schema: Schema, val schemaRepository: MutableList<Schema
             // Used by DatumWriter.  Applications should not call.
             override fun get(`field$`: Int): Any? {
                 return when (`field$`) {
-                    ${schema.fields.map { it.asGetIndexFieldMapping() }}
+                    ${schema.fields.map { it.asGetIndexFieldMapping() }.joinToString("\n" + indendSpaces(5))}
                     else -> throw org.apache.avro.AvroRuntimeException("Bad index")
                 }
             }
@@ -120,14 +118,14 @@ class RecordBuilder(val schema: Schema, val schemaRepository: MutableList<Schema
             // Used by DatumReader.  Applications should not call.
             override fun put(`field$\`: Int, `value$`: Any) {
                 when (`field$`) {
-                    ${schema.fields.map { it.asPutIndexFieldMapping() }}
+                    ${schema.fields.map { it.asPutIndexFieldMapping() }.joinToString("\n" + indendSpaces(5))}
                     else -> throw org.apache.avro.AvroRuntimeException("Bad index")
                 }
             }
 
             @Throws(java.io.IOException::class)
             override fun customEncode(out: org.apache.avro.io.Encoder) {
-               ${schema.fields.map { it.asCustomEncoderPart() }}
+                ${schema.fields.map { it.asCustomEncoderPart() }.joinToString("\n" + indendSpaces(4))}
             }
 
 
@@ -135,12 +133,11 @@ class RecordBuilder(val schema: Schema, val schemaRepository: MutableList<Schema
             override fun customDecode(input: org.apache.avro.io.ResolvingDecoder) {
                 val fieldOrder = input.readFieldOrderIfDiff()
                 if (fieldOrder == null) {
-                    ${schema.fields.map { it.asCustomDecoderPart() }}
-
+                    ${schema.fields.map { it.asCustomDecoderPart() }.joinToString("\n" + indendSpaces(5))}
                 } else {
                     for (i in 0..${schema.fields.size - 1}) {
                         when (fieldOrder[i].pos()) {
-                            ${schema.fields.map { it.asCustomDecoderPart() }}
+                            ${schema.fields.map { it.asCustomDecoderIndexedPart() }.joinToString("\n" + indendSpaces(7))}
                             else -> throw java.io.IOException("Corrupt ResolvingDecoder.")
                         }
                     }
@@ -148,5 +145,10 @@ class RecordBuilder(val schema: Schema, val schemaRepository: MutableList<Schema
             }
         }
     """.trimIndent()
+    }
+
+    private fun indendSpaces(level: Int): String {
+        val spacesPerLevel = 4
+        return " ".repeat(level * spacesPerLevel)
     }
 }
