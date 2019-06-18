@@ -27,9 +27,10 @@ class RecordBuilder(val schema: Schema) {
         ${if (schema.doc?.isNotEmpty() == true) doc else ""}
         @org.apache.avro.specific.AvroGenerated
         data class ${className}(
-            ${schema.fields.map { it.asConstructorVarString() }.joinToString(",\n" + indendSpaces(3))}
+            ${schema.fields.map { it.asConstructorVarKotlinCodeString() }.joinToString(",\n" + indendSpaces(3))}
         ) : org.apache.avro.specific.SpecificRecordBase(), org.apache.avro.specific.SpecificRecord {
-            ${schema.fields.map { it.asAliasGeterSetter() }.filterNotNull().joinToString("\n" + indendSpaces(3))}
+
+            ${schema.fields.filter { it.aliases().isNotEmpty() }.map { it.asAliasGetterSetterKotlinCodeString() }.joinToString("\n" + indendSpaces(3))}
 
             companion object {
                 private const val serialVersionUID = ${schema.hashCode()}L
@@ -110,7 +111,7 @@ class RecordBuilder(val schema: Schema) {
             // Used by DatumWriter.  Applications should not call.
             override fun get(`field$`: Int): Any? {
                 return when (`field$`) {
-                    ${schema.fields.map { it.asGetIndexFieldMapping() }.joinToString("\n" + indendSpaces(5))}
+                    ${schema.fields.map { it.asGetIndexFieldMappingKotlinCodeString() }.joinToString("\n" + indendSpaces(5))}
                     else -> throw org.apache.avro.AvroRuntimeException("Bad index")
                 }
             }
@@ -118,14 +119,14 @@ class RecordBuilder(val schema: Schema) {
             // Used by DatumReader.  Applications should not call.
             override fun put(`field$\`: Int, `value$`: Any) {
                 when (`field$`) {
-                    ${schema.fields.map { it.asPutIndexFieldMapping() }.joinToString("\n" + indendSpaces(5))}
+                    ${schema.fields.map { it.asPutIndexFieldMappingKotlinCodeString() }.joinToString("\n" + indendSpaces(5))}
                     else -> throw org.apache.avro.AvroRuntimeException("Bad index")
                 }
             }
 
             @Throws(java.io.IOException::class)
             override fun customEncode(out: org.apache.avro.io.Encoder) {
-                ${schema.fields.map { it.asCustomEncoderPart() }.joinToString("\n" + indendSpaces(4))}
+                ${schema.fields.map { it.asCustomEncoderPartKotlinCodeString() }.joinToString("\n" + indendSpaces(4))}
             }
 
 
@@ -133,11 +134,11 @@ class RecordBuilder(val schema: Schema) {
             override fun customDecode(input: org.apache.avro.io.ResolvingDecoder) {
                 val fieldOrder = input.readFieldOrderIfDiff()
                 if (fieldOrder == null) {
-                    ${schema.fields.map { it.asCustomDecoderPart() }.joinToString("\n" + indendSpaces(5))}
+                    ${schema.fields.map { it.asCustomDecoderPartKotlinCodeString() }.joinToString("\n" + indendSpaces(5))}
                 } else {
                     for (i in 0..${schema.fields.size - 1}) {
                         when (fieldOrder[i].pos()) {
-                            ${schema.fields.map { it.asCustomDecoderIndexedPart() }.joinToString("\n" + indendSpaces(7))}
+                            ${schema.fields.map { it.asCustomDecoderIndexedPartKotlinCodeString() }.joinToString("\n" + indendSpaces(7))}
                             else -> throw java.io.IOException("Corrupt ResolvingDecoder.")
                         }
                     }

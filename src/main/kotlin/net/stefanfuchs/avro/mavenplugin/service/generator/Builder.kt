@@ -37,6 +37,8 @@ class Builder {
                             .flatMap { findAllRecordAndEnumSchemas(it.schema()) }
         } else if (schema.type == Schema.Type.ENUM) {
             listOf(schema)
+        } else if (schema.type == Schema.Type.FIXED) {
+            listOf(schema)
         } else if (schema.type == Schema.Type.ARRAY) {
             findAllRecordAndEnumSchemas(schema.elementType)
         } else if (schema.type == Schema.Type.MAP) {
@@ -57,7 +59,8 @@ class Builder {
                             when (it.type) {
                                 Schema.Type.RECORD -> RecordBuilder(it).build()
                                 Schema.Type.ENUM -> EnumBuilder(it).build()
-                                else -> throw IllegalArgumentException("Schema $it is not of expected type Record or Enum")
+                                Schema.Type.FIXED -> FixedBuilder(it).build()
+                                else -> throw IllegalArgumentException("Schema $it is not of expected type Record, Enum or Fixed")
                             }
                 }
                 .toMap()

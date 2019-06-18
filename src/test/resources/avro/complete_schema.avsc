@@ -5,7 +5,8 @@
   "fields": [
     {
       "name": "field1",
-      "type": "int"
+      "type": "int",
+      "default": -1
     },
     {
       "name": "field2",
@@ -34,7 +35,8 @@
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "default": null
     },
     {
       "name": "field6",
@@ -56,6 +58,18 @@
           ]
         }
       ]
+    },
+    {
+      "name": "field8",
+      "type": "bytes"
+    },
+    {
+      "name": "field9",
+      "type": {
+        "type": "fixed",
+        "size": 16,
+        "name": "md5"
+      }
     }
   ]
 }

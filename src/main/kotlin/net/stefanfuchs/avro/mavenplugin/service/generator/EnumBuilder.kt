@@ -15,13 +15,14 @@ class EnumBuilder(val schema: Schema) {
         /**
         ${schema.doc}
         **/
-        """
+        """.trimIndent()
 
 
     fun build(): String {
         return """
         package ${packageName}
 
+        ${if (schema.doc?.isNotEmpty() == true) doc else ""}
         @org.apache.avro.specific.AvroGenerated
         enum class ${className} : org.apache.avro.generic.GenericEnumSymbol<${className}> {
             ${getEnumSymbols()};
@@ -31,6 +32,7 @@ class EnumBuilder(val schema: Schema) {
             }
 
             companion object {
+                private const val serialVersionUID = ${schema.hashCode()}L
                 val classSchema: org.apache.avro.Schema =  org.apache.avro.Schema.Parser().parse("${schema.toString().replace("\"", "\\\"")}");
             }
         }
