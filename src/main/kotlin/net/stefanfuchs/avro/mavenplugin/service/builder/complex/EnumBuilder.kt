@@ -1,4 +1,4 @@
-package net.stefanfuchs.avro.mavenplugin.service.generator
+package net.stefanfuchs.avro.mavenplugin.service.builder.complex
 
 import org.apache.avro.Schema
 

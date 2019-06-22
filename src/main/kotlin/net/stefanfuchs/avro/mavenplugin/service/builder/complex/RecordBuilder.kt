@@ -1,5 +1,11 @@
-package net.stefanfuchs.avro.mavenplugin.service.generator
+package net.stefanfuchs.avro.mavenplugin.service.builder.complex
 
+import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asAliasGetterSetterKotlinCodeString
+import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asConstructorVarKotlinCodeString
+import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asCustomDecoderPartKotlinCodeString
+import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asCustomEncoderPartKotlinCodeString
+import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asGetIndexFieldMappingKotlinCodeString
+import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asPutIndexFieldMappingKotlinCodeString
 import org.apache.avro.Schema
 
 class RecordBuilder(val schema: Schema) {
@@ -126,8 +132,8 @@ class RecordBuilder(val schema: Schema) {
             }
 
             @Throws(java.io.IOException::class)
-            override fun customEncode(out: org.apache.avro.io.Encoder) {
-                ${schema.fields.map { it.asCustomEncoderPartKotlinCodeString() }.joinToString("\n" + indendSpaces(4))}
+            override fun customEncode(output: org.apache.avro.io.Encoder) {
+                ${schema.fields.map { it.schema().asCustomEncoderPartKotlinCodeString("this.${it.name()}") }.joinToString("\n" + indendSpaces(4))}
             }
 
 

@@ -1,4 +1,4 @@
-package net.stefanfuchs.avro.mavenplugin.service.generator
+package net.stefanfuchs.avro.mavenplugin.service.builder
 
 import org.apache.avro.Schema
 import org.junit.jupiter.api.Test

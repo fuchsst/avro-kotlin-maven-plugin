@@ -1,5 +1,8 @@
-package net.stefanfuchs.avro.mavenplugin.service.generator
+package net.stefanfuchs.avro.mavenplugin.service.builder
 
+import net.stefanfuchs.avro.mavenplugin.service.builder.complex.EnumBuilder
+import net.stefanfuchs.avro.mavenplugin.service.builder.complex.FixedBuilder
+import net.stefanfuchs.avro.mavenplugin.service.builder.complex.RecordBuilder
 import org.apache.avro.Schema
 import java.io.File
 import java.io.InputStream

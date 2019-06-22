@@ -13,7 +13,7 @@ class TestAvroClass(
         var field8: ByteArray = ByteArray(0),
         var field9: net.stefanfuchs.avro.mavenplugin.test.pkg.md5 = net.stefanfuchs.avro.mavenplugin.test.pkg.md5(),
         var field10: net.stefanfuchs.avro.mavenplugin.test.pkg.TestAvroClassSubClass = net.stefanfuchs.avro.mavenplugin.test.pkg.TestAvroClassSubClass(),
-        var field11: Map<String, ByteArray> = mutableMapOf<String, ByteArray>()
+        var field11: Map<String, ByteArray> = mutableMapOf()
 ) : org.apache.avro.specific.SpecificRecordBase(), org.apache.avro.specific.SpecificRecord {
 
     var field4Alias: Array<Boolean>
@@ -28,7 +28,7 @@ class TestAvroClass(
         }
 
     companion object {
-        private const val serialVersionUID = 654884941L
+        private const val serialVersionUID = -126203350L
         private val model = org.apache.avro.specific.SpecificData()
 
         val classSchema: org.apache.avro.Schema = org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"TestAvroClass\",\"namespace\":\"net.stefanfuchs.avro.mavenplugin.test.pkg\",\"fields\":[{\"name\":\"field1\",\"type\":\"int\",\"default\":-1},{\"name\":\"field2\",\"type\":\"long\",\"default\":0,\"logicalType\":\"timestamp-millis\"},{\"name\":\"field3\",\"type\":{\"type\":\"map\",\"values\":\"string\"}},{\"name\":\"field4\",\"type\":{\"type\":\"array\",\"items\":\"boolean\"},\"aliases\":[\"field4Alias\"]},{\"name\":\"field5\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"field6\",\"type\":\"int\",\"logicalType\":\"date\"},{\"name\":\"field7\",\"type\":[\"null\",{\"type\":\"enum\",\"name\":\"Suit\",\"symbols\":[\"SPADES\",\"HEARTS\",\"DIAMONDS\",\"CLUBS\"]}]},{\"name\":\"field8\",\"type\":\"bytes\"},{\"name\":\"field9\",\"type\":{\"type\":\"fixed\",\"name\":\"md5\",\"size\":16}},{\"name\":\"field10\",\"type\":{\"type\":\"record\",\"name\":\"TestAvroClassSubClass\",\"fields\":[{\"name\":\"subField1\",\"type\":\"float\"},{\"name\":\"subField2\",\"type\":\"double\"}]}},{\"name\":\"field11\",\"type\":{\"type\":\"map\",\"values\":\"bytes\"},\"aliases\":[\"field11Alias\"]}]}")
@@ -141,8 +141,71 @@ class TestAvroClass(
     }
 
     @Throws(java.io.IOException::class)
-    override fun customEncode(out: org.apache.avro.io.Encoder) {
-        TODO()
+    override fun customEncode(output: org.apache.avro.io.Encoder) {
+        output.writeInt(this.field1)
+        output.writeLong(this.field2)
+        run {
+            val mapSize = this.field3.size.toLong()
+            output.writeMapStart()
+            output.setItemCount(mapSize)
+            var actualMapSize: Long = 0
+            for ((key, value) in this.field3) {
+                actualMapSize++
+                output.startItem()
+                output.writeString(key)
+                output.writeString(value)
+            }
+            output.writeMapEnd()
+            if (actualMapSize != mapSize)
+                throw java.util.ConcurrentModificationException("Map-size written was $mapSize, but element count was $actualMapSize.")
+        }
+        run {
+            val arraySize = this.field4.size.toLong()
+            output.writeArrayStart()
+            output.setItemCount(arraySize)
+            var actualArraySize: Long = 0
+            this.field4.forEach {
+                actualArraySize++
+                output.startItem()
+                output.writeBoolean(it)
+            }
+            output.writeArrayEnd()
+            if (actualArraySize != arraySize)
+                throw java.util.ConcurrentModificationException("Array-size written was $arraySize, but element count was $actualArraySize.")
+        }
+        if (this.field5 == null) {
+            output.writeIndex(0)
+            output.writeNull()
+        } else {
+            output.writeIndex(1)
+            output.writeString(this.field5)
+        }
+        output.writeInt(this.field6)
+        if (this.field7 == null) {
+            output.writeIndex(0)
+            output.writeNull()
+        } else {
+            output.writeIndex(1)
+            output.writeEnum(this.field7!!.ordinal)
+        }
+        output.writeBytes(this.field8)
+        output.writeFixed(this.field9.bytes(), 0, 16)
+        this.field10.customEncode(output)
+        run {
+            val mapSize = this.field11.size.toLong()
+            output.writeMapStart()
+            output.setItemCount(mapSize)
+            var actualMapSize: Long = 0
+            for ((key, value) in this.field11) {
+                actualMapSize++
+                output.startItem()
+                output.writeString(key)
+                output.writeBytes(value)
+            }
+            output.writeMapEnd()
+            if (actualMapSize != mapSize)
+                throw java.util.ConcurrentModificationException("Map-size written was $mapSize, but element count was $actualMapSize.")
+        }
     }
 
 
@@ -174,7 +237,6 @@ class TestAvroClass(
                     size = input.arrayNext()
                 }
             }.toTypedArray()
-
             this.field5 = if (input.readIndex() != 1) {
                 input.readNull()
                 null
@@ -232,7 +294,6 @@ class TestAvroClass(
                             size = input.arrayNext()
                         }
                     }.toTypedArray()
-
                     4 -> this.field5 = if (input.readIndex() != 1) {
                         input.readNull()
                         null
@@ -280,7 +341,7 @@ enum class Suit : org.apache.avro.generic.GenericEnumSymbol<Suit> {
     }
 
     companion object {
-        private const val serialVersionUID = 1709079169L
+        private const val serialVersionUID = -1787655751L
         val classSchema: org.apache.avro.Schema = org.apache.avro.Schema.Parser().parse("{\"type\":\"enum\",\"name\":\"Suit\",\"namespace\":\"net.stefanfuchs.avro.mavenplugin.test.pkg\",\"symbols\":[\"SPADES\",\"HEARTS\",\"DIAMONDS\",\"CLUBS\"]}");
     }
 }
@@ -290,13 +351,13 @@ enum class Suit : org.apache.avro.generic.GenericEnumSymbol<Suit> {
 @org.apache.avro.specific.AvroGenerated
 class md5 : org.apache.avro.specific.SpecificFixed {
 
-    constructor() : super() {}
+    constructor() : super()
 
     /**
      * Creates a new md5 with the given bytes.
      * @param bytes The bytes to create the new md5.
      */
-    constructor(bytes: ByteArray) : super(bytes) {}
+    constructor(bytes: ByteArray) : super(bytes)
 
     @Throws(java.io.IOException::class)
     override fun writeExternal(objOutput: java.io.ObjectOutput) {
@@ -314,7 +375,7 @@ class md5 : org.apache.avro.specific.SpecificFixed {
     }
 
     companion object {
-        private const val serialVersionUID = -897278481L
+        private const val serialVersionUID = 175943878L
         val classSchema: org.apache.avro.Schema = org.apache.avro.Schema.Parser().parse("{\"type\":\"fixed\",\"name\":\"md5\",\"namespace\":\"net.stefanfuchs.avro.mavenplugin.test.pkg\",\"size\":16}");
 
         private val `WRITER$` = org.apache.avro.specific.SpecificDatumWriter<md5>(classSchema)
@@ -325,14 +386,14 @@ class md5 : org.apache.avro.specific.SpecificFixed {
 
 
 @org.apache.avro.specific.AvroGenerated
-data class TestAvroClassSubClass(
+class TestAvroClassSubClass(
         var subField1: Float = 0F,
         var subField2: Double = 0.0
 ) : org.apache.avro.specific.SpecificRecordBase(), org.apache.avro.specific.SpecificRecord {
 
 
     companion object {
-        private const val serialVersionUID = 863654183L
+        private const val serialVersionUID = 1027214422L
         private val model = org.apache.avro.specific.SpecificData()
 
         val classSchema: org.apache.avro.Schema = org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"TestAvroClassSubClass\",\"namespace\":\"net.stefanfuchs.avro.mavenplugin.test.pkg\",\"fields\":[{\"name\":\"subField1\",\"type\":\"float\"},{\"name\":\"subField2\",\"type\":\"double\"}]}")
@@ -427,8 +488,9 @@ data class TestAvroClassSubClass(
     }
 
     @Throws(java.io.IOException::class)
-    override fun customEncode(out: org.apache.avro.io.Encoder) {
-        TODO()
+    override fun customEncode(output: org.apache.avro.io.Encoder) {
+        output.writeFloat(this.subField1)
+        output.writeDouble(this.subField2)
     }
 
 

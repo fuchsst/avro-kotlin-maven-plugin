@@ -1,4 +1,4 @@
-package net.stefanfuchs.avro.mavenplugin.service.generator
+package net.stefanfuchs.avro.mavenplugin.service.builder.complex
 
 import org.apache.avro.Schema
 
@@ -27,13 +27,13 @@ class FixedBuilder(val schema: Schema) {
         @org.apache.avro.specific.AvroGenerated
         class ${className} : org.apache.avro.specific.SpecificFixed {
 
-            constructor() : super() {}
+            constructor() : super()
 
             /**
              * Creates a new ${className} with the given bytes.
              * @param bytes The bytes to create the new ${className}.
              */
-            constructor(bytes: ByteArray) : super(bytes) {}
+            constructor(bytes: ByteArray) : super(bytes)
 
             @Throws(java.io.IOException::class)
             override fun writeExternal(objOutput: java.io.ObjectOutput) {
