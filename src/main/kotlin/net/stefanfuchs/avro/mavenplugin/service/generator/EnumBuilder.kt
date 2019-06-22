@@ -27,7 +27,7 @@ class EnumBuilder(val schema: Schema) {
         enum class ${className} : org.apache.avro.generic.GenericEnumSymbol<${className}> {
             ${getEnumSymbols()};
 
-            override fun getSchema(): Schema {
+            override fun getSchema(): org.apache.avro.Schema {
                 return classSchema
             }
 

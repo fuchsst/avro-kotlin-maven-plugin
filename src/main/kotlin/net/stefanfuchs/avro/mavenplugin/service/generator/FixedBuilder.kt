@@ -46,7 +46,7 @@ class FixedBuilder(val schema: Schema) {
             }
 
 
-            override fun getSchema(): Schema {
+            override fun getSchema(): org.apache.avro.Schema {
                 return classSchema
             }
 

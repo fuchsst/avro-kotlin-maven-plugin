@@ -11,6 +11,7 @@
     {
       "name": "field2",
       "type": "long",
+      "default": 0,
       "logicalType": "timestamp-millis"
     },
     {
@@ -69,6 +70,33 @@
         "type": "fixed",
         "size": 16,
         "name": "md5"
+      }
+    },
+    {
+      "name": "field10",
+      "type": {
+        "type": "record",
+        "name": "TestAvroClassSubClass",
+        "fields": [
+          {
+            "name": "subField1",
+            "type": "float"
+          },
+          {
+            "name": "subField2",
+            "type": "double"
+          }
+        ]
+      }
+    },
+    {
+      "name": "field11",
+      "aliases": [
+        "field11Alias"
+      ],
+      "type": {
+        "type": "map",
+        "values": "bytes"
       }
     }
   ]
