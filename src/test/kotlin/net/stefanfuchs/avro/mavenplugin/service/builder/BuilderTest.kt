@@ -10,19 +10,19 @@ internal class BuilderTest {
         val schemaFile = BuilderTest::class.java.getResource("/avro/complete_schema.avsc")
         val schema = Schema.Parser().parse(schemaFile.openStream())
         val schemaSourceCodes = Builder()
-                .readSchema(BuilderTest::class.java.getResource("/avro/complete_schema.avsc").openStream())
-                .buildList()
+                .readSchema(schemaFile.openStream())
+                .buildComplexBuilderList()
 
 
         println(schema)
         println()
         println()
 
-        schemaSourceCodes.forEach { (key, value) -> println(key) }
+        schemaSourceCodes.forEach { println(it.filename) }
         println()
         println()
 
-        schemaSourceCodes.forEach { (key, value) -> println(value) }
+        schemaSourceCodes.forEach {  println(it.build()) }
 
     }
 }

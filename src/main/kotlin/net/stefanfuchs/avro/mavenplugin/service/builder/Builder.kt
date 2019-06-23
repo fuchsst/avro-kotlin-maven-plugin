@@ -1,5 +1,6 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder
 
+import net.stefanfuchs.avro.mavenplugin.service.builder.complex.ComplexBuilder
 import net.stefanfuchs.avro.mavenplugin.service.builder.complex.EnumBuilder
 import net.stefanfuchs.avro.mavenplugin.service.builder.complex.FixedBuilder
 import net.stefanfuchs.avro.mavenplugin.service.builder.complex.RecordBuilder
@@ -9,7 +10,7 @@ import java.io.InputStream
 
 class Builder {
 
-    private val schemas: MutableList<Schema> = mutableListOf()
+    private val schemas: MutableSet<Schema> = mutableSetOf()
 
     fun readSchemas(path: String, extensionFilter: List<String> = listOf(".avsc", ".avro")): Builder {
         val url = Builder::class.java.getResource(path)
@@ -55,18 +56,17 @@ class Builder {
         }
     }
 
-    fun buildList(): Map<String, String> {
+    fun buildComplexBuilderList(): Set<ComplexBuilder> {
         return schemas
                 .map {
-                    "${it.namespace}.${it.name}" to
                             when (it.type) {
-                                Schema.Type.RECORD -> RecordBuilder(it).build()
-                                Schema.Type.ENUM -> EnumBuilder(it).build()
-                                Schema.Type.FIXED -> FixedBuilder(it).build()
+                                Schema.Type.RECORD -> RecordBuilder(it)
+                                Schema.Type.ENUM -> EnumBuilder(it)
+                                Schema.Type.FIXED -> FixedBuilder(it)
                                 else -> throw IllegalArgumentException("Schema $it is not of expected type Record, Enum or Fixed")
                             }
                 }
-                .toMap()
+                .toSet()
     }
 
 

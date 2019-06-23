@@ -2,23 +2,23 @@ package net.stefanfuchs.avro.mavenplugin.service.builder.complex
 
 import org.apache.avro.Schema
 
-class EnumBuilder(val schema: Schema) {
-    val packageName: String = schema.namespace
-    val className: String = schema.name
-    val fullname: String = "${schema.namespace}.${schema.name}"
+class EnumBuilder(val schema: Schema):ComplexBuilder {
+    override   val packageName: String = schema.namespace
+  override  val className: String = schema.name
+    override val filename: String = "/${schema.namespace.replace(".","/")}/${schema.name}.kt"
 
     init {
         require(schema.type == Schema.Type.ENUM)
     }
 
-    val doc: String = """
+    private val doc: String = """
         /**
         ${schema.doc}
         **/
         """.trimIndent()
 
 
-    fun build(): String {
+    override fun build(): String {
         return """
         package ${packageName}
 
@@ -42,5 +42,21 @@ class EnumBuilder(val schema: Schema) {
     private fun getEnumSymbols(): String {
         return schema.enumSymbols.joinToString(", ")
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as EnumBuilder
+
+        if (schema != other.schema) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return schema.hashCode()
+    }
+
 
 }

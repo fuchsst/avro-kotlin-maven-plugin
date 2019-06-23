@@ -8,10 +8,10 @@ import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asGetIndexFieldMa
 import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asPutIndexFieldMappingKotlinCodeString
 import org.apache.avro.Schema
 
-class RecordBuilder(val schema: Schema) {
-    val packageName: String = schema.namespace
-    val className: String = schema.name
-    val fullname: String = "${schema.namespace}.${schema.name}"
+class RecordBuilder(val schema: Schema):ComplexBuilder  {
+ override   val packageName: String = schema.namespace
+    override    val className: String = schema.name
+    override val filename: String = "/${schema.namespace.replace(".","/")}/${schema.name}.kt"
 
     init {
         require(schema.type == Schema.Type.RECORD)
@@ -19,14 +19,14 @@ class RecordBuilder(val schema: Schema) {
     }
 
 
-    val doc: String = """
+    private val doc: String = """
         /**
         ${schema.doc}
         **/
         """
 
 
-    fun build(): String {
+    override   fun build(): String {
         return """
         package ${packageName}
 
@@ -159,4 +159,21 @@ class RecordBuilder(val schema: Schema) {
         val spacesPerLevel = 4
         return " ".repeat(level * spacesPerLevel)
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as RecordBuilder
+
+        if (schema != other.schema) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return schema.hashCode()
+    }
+
+
 }
