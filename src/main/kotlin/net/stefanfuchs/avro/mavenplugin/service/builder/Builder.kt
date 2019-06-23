@@ -5,19 +5,25 @@ import net.stefanfuchs.avro.mavenplugin.service.builder.complex.EnumBuilder
 import net.stefanfuchs.avro.mavenplugin.service.builder.complex.FixedBuilder
 import net.stefanfuchs.avro.mavenplugin.service.builder.complex.RecordBuilder
 import org.apache.avro.Schema
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.InputStream
 
 class Builder {
 
     private val schemas: MutableSet<Schema> = mutableSetOf()
+    private val logger = LoggerFactory.getLogger(Builder::class.java)
 
     fun readSchemas(path: String, extensionFilter: List<String> = listOf(".avsc", ".avro")): Builder {
-        val url = Builder::class.java.getResource(path)
-        File(url!!.path)
+        logger.info("Read schemas from '$path' with extension filter $extensionFilter")
+
+        File(path)
                 .walkTopDown()
-                .filter { it.isFile && it.extension in extensionFilter }
-                .forEach { readSchema(it.inputStream()) }
+                .filter { it.isFile }
+                .forEach {
+                    logger.info("Reading file ${it.absolutePath}")
+                    readSchema(it.inputStream())
+                }
         return this
     }
 
@@ -57,16 +63,19 @@ class Builder {
     }
 
     fun buildComplexBuilderList(): Set<ComplexBuilder> {
-        return schemas
+        val complexBuilders = schemas
                 .map {
-                            when (it.type) {
-                                Schema.Type.RECORD -> RecordBuilder(it)
-                                Schema.Type.ENUM -> EnumBuilder(it)
-                                Schema.Type.FIXED -> FixedBuilder(it)
-                                else -> throw IllegalArgumentException("Schema $it is not of expected type Record, Enum or Fixed")
-                            }
+                    when (it.type) {
+                        Schema.Type.RECORD -> RecordBuilder(it)
+                        Schema.Type.ENUM -> EnumBuilder(it)
+                        Schema.Type.FIXED -> FixedBuilder(it)
+                        else -> throw IllegalArgumentException("Schema $it is not of expected type Record, Enum or Fixed")
+                    }
                 }
                 .toSet()
+        logger.info("Found ${complexBuilders.size} schema that will generate the following Kotlin files:")
+        complexBuilders.forEach { logger.info(it.filename) }
+        return complexBuilders
     }
 
 

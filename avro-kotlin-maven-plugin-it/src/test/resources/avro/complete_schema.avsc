@@ -1,0 +1,103 @@
+{
+  "type": "record",
+  "name": "TestAvroClass",
+  "namespace": "net.stefanfuchs.avro.mavenplugin.test.pkg",
+  "fields": [
+    {
+      "name": "field1",
+      "type": "int",
+      "default": -1
+    },
+    {
+      "name": "field2",
+      "type": "long",
+      "default": 0,
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "field3",
+      "type": {
+        "type": "map",
+        "values": "string"
+      }
+    },
+    {
+      "name": "field4",
+      "aliases": [
+        "field4Alias"
+      ],
+      "type": {
+        "type": "array",
+        "items": "boolean"
+      }
+    },
+    {
+      "name": "field5",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "field6",
+      "type": "int",
+      "logicalType": "date"
+    },
+    {
+      "name": "field7",
+      "type": [
+        "null",
+        {
+          "type": "enum",
+          "name": "Suit",
+          "symbols": [
+            "SPADES",
+            "HEARTS",
+            "DIAMONDS",
+            "CLUBS"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "field8",
+      "type": "bytes"
+    },
+    {
+      "name": "field9",
+      "type": {
+        "type": "fixed",
+        "size": 16,
+        "name": "md5"
+      }
+    },
+    {
+      "name": "field10",
+      "type": {
+        "type": "record",
+        "name": "TestAvroClassSubClass",
+        "fields": [
+          {
+            "name": "subField1",
+            "type": "float"
+          },
+          {
+            "name": "subField2",
+            "type": "double"
+          }
+        ]
+      }
+    },
+    {
+      "name": "field11",
+      "aliases": [
+        "field11Alias"
+      ],
+      "type": {
+        "type": "map",
+        "values": "bytes"
+      }
+    }
+  ]
+}

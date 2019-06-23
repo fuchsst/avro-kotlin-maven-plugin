@@ -80,12 +80,31 @@
                         </goals>
                         <configuration>
                             <testSourceDirectory>${project.basedir}/src/test/resources/avro/</testSourceDirectory>
-                            <testOutputDirectory>${project.basedir}/src/test/generated-sources/</testOutputDirectory>
+                            <testOutputDirectory>${project.basedir}/src/test/generated-sources/java/</testOutputDirectory>
                             <stringType>String</stringType>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>net.stefanfuchs</groupId>
+                <artifactId>avro-kotlin-maven-plugin</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>schema</goal>
+                        </goals>
+                        <configuration>
+                            <sourcePath>${project.basedir}/src/test/resources/avro/</sourcePath>
+                            <destinationPath>${project.basedir}/src/test/generated-sources/kotlin/</destinationPath>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
@@ -100,6 +119,8 @@
                         <configuration>
                             <sourceDirs>
                                 <source>src/test/kotlin</source>
+                                <source>src/test/generated-sources/java</source>
+                                <source>src/test/generated-sources/kotlin</source>
                             </sourceDirs>
                         </configuration>
                     </execution>

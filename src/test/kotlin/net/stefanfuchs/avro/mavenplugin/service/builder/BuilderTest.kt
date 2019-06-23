@@ -22,7 +22,7 @@ internal class BuilderTest {
         println()
         println()
 
-        schemaSourceCodes.forEach {  println(it.build()) }
+        schemaSourceCodes.forEach { println(it.build()) }
 
     }
 }

@@ -1,4 +1,4 @@
-package net.stefanfuchs.avro.mavenplugin.test.pkg
+package net.stefanfuchs.avro.mavenplugin.service.builder
 
 
 @org.apache.avro.specific.AvroGenerated
@@ -9,10 +9,10 @@ class TestAvroClass(
         var field4: Array<Boolean> = emptyArray(),
         var field5: String? = null,
         var field6: Int = 0,
-        var field7: net.stefanfuchs.avro.mavenplugin.test.pkg.Suit? = null,
+        var field7: Suit? = null,
         var field8: ByteArray = ByteArray(0),
-        var field9: net.stefanfuchs.avro.mavenplugin.test.pkg.md5 = net.stefanfuchs.avro.mavenplugin.test.pkg.md5(),
-        var field10: net.stefanfuchs.avro.mavenplugin.test.pkg.TestAvroClassSubClass = net.stefanfuchs.avro.mavenplugin.test.pkg.TestAvroClassSubClass(),
+        var field9: md5 = md5(),
+        var field10: TestAvroClassSubClass = TestAvroClassSubClass(),
         var field11: Map<String, ByteArray> = mutableMapOf()
 ) : org.apache.avro.specific.SpecificRecordBase(), org.apache.avro.specific.SpecificRecord {
 
@@ -131,10 +131,10 @@ class TestAvroClass(
             3 -> this.field4 = `value$` as Array<Boolean>
             4 -> this.field5 = `value$` as String?
             5 -> this.field6 = `value$` as Int
-            6 -> this.field7 = `value$` as net.stefanfuchs.avro.mavenplugin.test.pkg.Suit?
+            6 -> this.field7 = `value$` as Suit?
             7 -> this.field8 = `value$` as ByteArray
-            8 -> this.field9 = `value$` as net.stefanfuchs.avro.mavenplugin.test.pkg.md5
-            9 -> this.field10 = `value$` as net.stefanfuchs.avro.mavenplugin.test.pkg.TestAvroClassSubClass
+            8 -> this.field9 = `value$` as md5
+            9 -> this.field10 = `value$` as TestAvroClassSubClass
             10 -> this.field11 = `value$` as Map<String, ByteArray>
             else -> throw org.apache.avro.AvroRuntimeException("Bad index")
         }
@@ -249,12 +249,12 @@ class TestAvroClass(
                 input.readNull()
                 null
             } else {
-                net.stefanfuchs.avro.mavenplugin.test.pkg.Suit.values()[input.readEnum()]
+                Suit.values()[input.readEnum()]
             }
 
             this.field8 = input.readBytes(null).array()
-            this.field9 = { val bytes = ByteArray(16); input.readFixed(bytes, 0, 16); net.stefanfuchs.avro.mavenplugin.test.pkg.md5(bytes) }.invoke()
-            this.field10 = net.stefanfuchs.avro.mavenplugin.test.pkg.TestAvroClassSubClass().apply { customDecode(input) }
+            this.field9 = { val bytes = ByteArray(16); input.readFixed(bytes, 0, 16); md5(bytes) }.invoke()
+            this.field10 = TestAvroClassSubClass().apply { customDecode(input) }
             this.field11 = mutableMapOf<String, ByteArray>().apply {
                 var size = input.readMapStart()
                 while (0 < size) {
@@ -306,12 +306,12 @@ class TestAvroClass(
                         input.readNull()
                         null
                     } else {
-                        net.stefanfuchs.avro.mavenplugin.test.pkg.Suit.values()[input.readEnum()]
+                        Suit.values()[input.readEnum()]
                     }
 
                     7 -> this.field8 = input.readBytes(null).array()
-                    8 -> this.field9 = { val bytes = ByteArray(16); input.readFixed(bytes, 0, 16); net.stefanfuchs.avro.mavenplugin.test.pkg.md5(bytes) }.invoke()
-                    9 -> this.field10 = net.stefanfuchs.avro.mavenplugin.test.pkg.TestAvroClassSubClass().apply { customDecode(input) }
+                    8 -> this.field9 = { val bytes = ByteArray(16); input.readFixed(bytes, 0, 16); md5(bytes) }.invoke()
+                    9 -> this.field10 = TestAvroClassSubClass().apply { customDecode(input) }
                     10 -> this.field11 = mutableMapOf<String, ByteArray>().apply {
                         var size = input.readMapStart()
                         while (0 < size) {

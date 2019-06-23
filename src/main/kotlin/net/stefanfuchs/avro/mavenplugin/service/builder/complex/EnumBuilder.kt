@@ -2,10 +2,12 @@ package net.stefanfuchs.avro.mavenplugin.service.builder.complex
 
 import org.apache.avro.Schema
 
-class EnumBuilder(val schema: Schema):ComplexBuilder {
-    override   val packageName: String = schema.namespace
-  override  val className: String = schema.name
-    override val filename: String = "/${schema.namespace.replace(".","/")}/${schema.name}.kt"
+class EnumBuilder(val schema: Schema) : ComplexBuilder {
+    override val packageName: String = schema.namespace
+    override val className: String = schema.name
+    override val filepath: String = "/${schema.namespace.replace(".", "/")}"
+    override val filename: String = "${schema.name}.kt"
+    override val fullFilename: String = "$filepath/$filename"
 
     init {
         require(schema.type == Schema.Type.ENUM)
