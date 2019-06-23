@@ -18,10 +18,12 @@ class PluginRunner : AbstractMojo() {
     val includeFileList: List<String> = emptyList()
     @Parameter
     val extensionFilter: List<String> = listOf(".avsc", ".avro")
-    @Parameter(defaultValue = "/avro/")
-    val sourcePath: String = "/avro/"
+    @Parameter
+    val sourcePath: String? = null
     @Parameter(defaultValue = "./generated-sources")
     val destinationPath = "./generated-sources"
+    @Parameter(defaultValue = "true")
+    val generateLogicalType: Boolean = true // TODO: implement logical type code generation
 
 
     @Throws(MojoExecutionException::class)
@@ -30,7 +32,9 @@ class PluginRunner : AbstractMojo() {
         logger.info("Avro-Kotlin Code generation...")
         val builder = Builder()
 
-        builder.readSchemas(sourcePath, extensionFilter)
+        if (sourcePath != null) {
+            builder.readSchemas(sourcePath, extensionFilter)
+        }
         logger.info("Adding schemas from include list: $includeFileList")
         includeFileList.forEach { builder.readSchema(File(it).inputStream()) }
         CodeGenerator.writeKotlinCodeFiles(destinationPath, builder.buildComplexBuilderList())

@@ -27,6 +27,10 @@ class RecordBuilder(val schema: Schema) : ComplexBuilder {
         **/
         """
 
+    //TODO add logical types getter/setter
+    //TODO make fields private and use specific getter/setter
+    //TODO add builder functions for each field
+
 
     override fun build(): String {
         return """
