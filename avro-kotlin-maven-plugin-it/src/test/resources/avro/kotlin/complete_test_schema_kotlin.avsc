@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "TestAvroClass",
-  "namespace": "net.stefanfuchs.avro.mavenplugin.test.pkg",
+  "namespace": "net.stefanfuchs.avro.mavenplugin.test.kotlin",
   "fields": [
     {
       "name": "field1",

@@ -69,6 +69,29 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/src/test/generated-sources/java</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                        <fileset>
+                            <directory>${project.basedir}/src/test/generated-sources/kotlin</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro-maven-plugin</artifactId>
                 <version>${avro.version}</version>
@@ -79,7 +102,7 @@
                             <goal>schema</goal>
                         </goals>
                         <configuration>
-                            <testSourceDirectory>${project.basedir}/src/test/resources/avro/</testSourceDirectory>
+                            <testSourceDirectory>${project.basedir}/src/test/resources/avro/java/</testSourceDirectory>
                             <testOutputDirectory>${project.basedir}/src/test/generated-sources/java/</testOutputDirectory>
                             <stringType>String</stringType>
                         </configuration>
@@ -98,7 +121,7 @@
                             <goal>schema</goal>
                         </goals>
                         <configuration>
-                            <sourcePath>${project.basedir}/src/test/resources/avro/</sourcePath>
+                            <sourcePath>${project.basedir}/src/test/resources/avro/kotlin/</sourcePath>
                             <destinationPath>${project.basedir}/src/test/generated-sources/kotlin/</destinationPath>
                         </configuration>
                     </execution>

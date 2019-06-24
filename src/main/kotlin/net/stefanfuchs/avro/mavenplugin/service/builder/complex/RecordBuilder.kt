@@ -158,7 +158,7 @@ class RecordBuilder(val schema: Schema) : ComplexBuilder {
                 }
             }
         }
-    """.trimIndent()
+        """.trimIndent()
     }
 
     private fun indendSpaces(level: Int): String {

@@ -34,31 +34,20 @@ class Builder {
     }
 
     fun readSchema(schema: Schema): Builder {
-        findAllRecordAndEnumSchemas(schema)
+        findAllComplexSchemas(schema)
                 .forEach { schemas.add(it) }
         return this
     }
 
-    private fun findAllRecordAndEnumSchemas(schema: Schema): List<Schema> {
-        return if (schema.type == Schema.Type.RECORD) {
-            listOf(schema) +
-                    schema
-                            .fields
-                            .flatMap { findAllRecordAndEnumSchemas(it.schema()) }
-        } else if (schema.type == Schema.Type.ENUM) {
-            listOf(schema)
-        } else if (schema.type == Schema.Type.FIXED) {
-            listOf(schema)
-        } else if (schema.type == Schema.Type.ARRAY) {
-            findAllRecordAndEnumSchemas(schema.elementType)
-        } else if (schema.type == Schema.Type.MAP) {
-            findAllRecordAndEnumSchemas(schema.valueType)
-        } else if (schema.type == Schema.Type.UNION) {
-            schema
-                    .types
-                    .flatMap { findAllRecordAndEnumSchemas(it) }
-        } else {
-            emptyList()
+    private fun findAllComplexSchemas(schema: Schema): List<Schema> {
+        return when (schema.type) {
+            Schema.Type.RECORD -> listOf(schema) + schema.fields.flatMap { findAllComplexSchemas(it.schema()) }
+            Schema.Type.ENUM -> listOf(schema)
+            Schema.Type.FIXED -> listOf(schema)
+            Schema.Type.ARRAY -> findAllComplexSchemas(schema.elementType)
+            Schema.Type.MAP -> findAllComplexSchemas(schema.valueType)
+            Schema.Type.UNION -> schema.types.flatMap { findAllComplexSchemas(it) }
+            else -> emptyList()
         }
     }
 
@@ -74,7 +63,7 @@ class Builder {
                 }
                 .toSet()
         logger.info("Found ${complexBuilders.size} schema that will generate the following Kotlin files:")
-        complexBuilders.forEach { logger.info(it.filename) }
+        complexBuilders.forEach { logger.info(it.fullFilename) }
         return complexBuilders
     }
 
