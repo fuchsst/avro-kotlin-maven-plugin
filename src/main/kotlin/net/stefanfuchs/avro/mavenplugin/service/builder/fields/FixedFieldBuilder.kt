@@ -2,7 +2,7 @@ package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
 import org.apache.avro.Schema
 
-object FixedFieldBuilder : FieldBuilder {
+internal object FixedFieldBuilder : FieldBuilder {
     override fun toDefaultValueKotlinCodeString(field: Schema.Field): String {
         require(field.schema().type == Schema.Type.FIXED)
         return "${field.schema().namespace}.${field.schema().name}()"

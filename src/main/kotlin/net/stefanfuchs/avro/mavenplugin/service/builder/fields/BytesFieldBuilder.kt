@@ -2,7 +2,7 @@ package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
 import org.apache.avro.Schema
 
-object BytesFieldBuilder : FieldBuilder {
+internal object BytesFieldBuilder : FieldBuilder {
     override fun toDefaultValueKotlinCodeString(field: Schema.Field): String {
         require(field.schema().type == Schema.Type.BYTES)
         return "ByteArray(0)"

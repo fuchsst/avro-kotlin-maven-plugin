@@ -2,7 +2,7 @@ package net.stefanfuchs.avro.mavenplugin.service.builder.complex
 
 import org.apache.avro.Schema
 
-class FixedBuilder(val schema: Schema) : ComplexBuilder {
+internal class FixedBuilder(val schema: Schema) : ComplexBuilder {
     override val packageName: String = schema.namespace
     override val className: String = schema.name
     override val filepath: String = "/${schema.namespace.replace(".", "/")}"

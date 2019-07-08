@@ -2,7 +2,7 @@ package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
 import org.apache.avro.Schema
 
-object LongFieldBuilder : FieldBuilder {
+internal object LongFieldBuilder : FieldBuilder {
     override fun toDefaultValueKotlinCodeString(field: Schema.Field): String {
         require(field.schema().type == Schema.Type.LONG)
         return "0L"

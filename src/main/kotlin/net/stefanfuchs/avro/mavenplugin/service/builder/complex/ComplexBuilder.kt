@@ -1,6 +1,6 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder.complex
 
-interface ComplexBuilder {
+internal interface ComplexBuilder {
     val packageName: String
     val className: String
     val filepath: String

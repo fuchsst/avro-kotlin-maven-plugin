@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.InputStream
 
-class Builder {
+internal class Builder {
 
     private val schemas: MutableSet<Schema> = mutableSetOf()
     private val logger = LoggerFactory.getLogger(Builder::class.java)

@@ -2,7 +2,7 @@ package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
 import org.apache.avro.Schema
 
-object StringFieldBuilder : FieldBuilder {
+internal object StringFieldBuilder : FieldBuilder {
     override fun toDefaultValueKotlinCodeString(field: Schema.Field): String {
         require(field.schema().type == Schema.Type.STRING)
         return """"""""

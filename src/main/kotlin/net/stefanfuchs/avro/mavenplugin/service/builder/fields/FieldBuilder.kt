@@ -3,7 +3,7 @@ package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 
-object FieldBuilderFactory {
+internal object FieldBuilderFactory {
     private val SchemaTypeToFieldBuilderMap: Map<Schema.Type, FieldBuilder> = mapOf(
             Schema.Type.ENUM to EnumFieldBuilder,
             Schema.Type.RECORD to RecordFieldBuilder,
@@ -27,14 +27,14 @@ object FieldBuilderFactory {
     }
 }
 
-interface FieldBuilder {
+internal interface FieldBuilder {
     fun toDefaultValueKotlinCodeString(field: Schema.Field): String
     fun toCustomEncoderPartKotlinCodeString(schema: Schema, fieldName: String): String
     fun toCustomDecoderPartKotlinCodeString(schema: Schema): String
     fun toFieldTypeKotlinCodeString(schema: Schema): String
 }
 
-fun Schema.Field.asConstructorVarKotlinCodeString(): String {
+internal fun Schema.Field.asConstructorVarKotlinCodeString(): String {
     return "${if (this.doc()?.isNotBlank() == true) (" /**\n" + this.doc() + "*/") else ""} var ${this.name()}: ${this.schema().asFieldTypeKotlinCodeString()} = ${this.asDefaultValueKotlinCodeString()}".trim()
 }
 
@@ -48,7 +48,7 @@ private fun Schema.Field.asDefaultValueKotlinCodeString(): String {
     }
 }
 
-fun Schema.Field.asAliasGetterSetterKotlinCodeString(): String? {
+internal fun Schema.Field.asAliasGetterSetterKotlinCodeString(): String? {
     return this
             .aliases().joinToString("\n") {
                 """var $it: ${this.schema().asFieldTypeKotlinCodeString()}
@@ -60,22 +60,22 @@ fun Schema.Field.asAliasGetterSetterKotlinCodeString(): String? {
             }
 }
 
-fun Schema.Field.asGetIndexFieldMappingKotlinCodeString(): String {
+internal fun Schema.Field.asGetIndexFieldMappingKotlinCodeString(): String {
     return "${this.pos()} -> this.${this.name()}"
 }
 
-fun Schema.Field.asPutIndexFieldMappingKotlinCodeString(): String {
+internal fun Schema.Field.asPutIndexFieldMappingKotlinCodeString(): String {
     return "${this.pos()} -> this.${this.name()} = `value\$` as ${this.schema().asFieldTypeKotlinCodeString()}"
 }
 
-fun Schema.asCustomEncoderPartKotlinCodeString(fieldName: String): String {
+internal fun Schema.asCustomEncoderPartKotlinCodeString(fieldName: String): String {
     return FieldBuilderFactory.fromSchemaType(this.type).toCustomEncoderPartKotlinCodeString(this, fieldName)
 }
 
-fun Schema.asCustomDecoderPartKotlinCodeString(): String {
+internal fun Schema.asCustomDecoderPartKotlinCodeString(): String {
     return FieldBuilderFactory.fromSchemaType(this.type).toCustomDecoderPartKotlinCodeString(this)
 }
 
-fun Schema.asFieldTypeKotlinCodeString(): String {
+internal fun Schema.asFieldTypeKotlinCodeString(): String {
     return FieldBuilderFactory.fromSchemaType(this.type).toFieldTypeKotlinCodeString(this)
 }

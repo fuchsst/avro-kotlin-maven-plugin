@@ -7,7 +7,7 @@ import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 
-internal class ReferenceImplementationCompatibilityTestAvroSubClassIT {
+internal class ReferenceImplementationCompatibilityTestAvroClassSubClassIT {
 
     @Test
     fun deserializeKotlinSerializedAvroWithJavaAvro() {

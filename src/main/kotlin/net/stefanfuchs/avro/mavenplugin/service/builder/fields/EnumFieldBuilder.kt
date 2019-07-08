@@ -2,7 +2,7 @@ package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
 import org.apache.avro.Schema
 
-object EnumFieldBuilder : FieldBuilder {
+internal object EnumFieldBuilder : FieldBuilder {
     override fun toDefaultValueKotlinCodeString(field: Schema.Field): String {
         require(field.schema().type == Schema.Type.ENUM)
         return "${field.schema().name}.${field.schema().enumSymbols[0]}"

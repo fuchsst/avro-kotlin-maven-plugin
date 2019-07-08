@@ -8,7 +8,7 @@ import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asGetIndexFieldMa
 import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asPutIndexFieldMappingKotlinCodeString
 import org.apache.avro.Schema
 
-class RecordBuilder(val schema: Schema) : ComplexBuilder {
+internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
     override val packageName: String = schema.namespace
     override val className: String = schema.name
     override val filepath: String = "/${schema.namespace.replace(".", "/")}"
@@ -139,7 +139,9 @@ class RecordBuilder(val schema: Schema) : ComplexBuilder {
 
             @Throws(java.io.IOException::class)
             override fun customEncode(output: org.apache.avro.io.Encoder) {
-                ${schema.fields.map { it.schema().asCustomEncoderPartKotlinCodeString("this.${it.name()}") }.joinToString("\n" + indendSpaces(4))}
+                ${schema.fields
+                .map { it.schema().asCustomEncoderPartKotlinCodeString("this.${it.name()}").split("\n").joinToString("\n" + indendSpaces(4)) }
+                .joinToString("\n" + indendSpaces(4))}
             }
 
 
@@ -147,7 +149,9 @@ class RecordBuilder(val schema: Schema) : ComplexBuilder {
             override fun customDecode(input: org.apache.avro.io.ResolvingDecoder) {
                 val fieldOrder = input.readFieldOrderIfDiff()
                 if (fieldOrder == null) {
-                    ${schema.fields.map { "this.${it.name()} = ${it.schema().asCustomDecoderPartKotlinCodeString()}" }.joinToString("\n" + indendSpaces(5))}
+                    ${schema.fields
+                .map { "this.${it.name()} = ${it.schema().asCustomDecoderPartKotlinCodeString().split("\n").joinToString("\n" + indendSpaces(4))}" }
+                .joinToString("\n" + indendSpaces(5))}
                 } else {
                     for (i in 0..${schema.fields.size - 1}) {
                         when (fieldOrder[i].pos()) {

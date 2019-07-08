@@ -10,7 +10,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 
-object CodeGenerator {
+internal object CodeGenerator {
 
     val logger = LoggerFactory.getLogger(CodeGenerator::class.java)
 
