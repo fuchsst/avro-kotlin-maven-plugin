@@ -1,12 +1,13 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
 
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.primitive.SchemaBuilder
 import net.stefanfuchs.avro.mavenplugin.service.builder.types.primitive.getSchemaBuilder
 import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 
 
-abstract class FieldBuilder(open val field: Schema.Field) {
+internal abstract class FieldBuilder(open val field: Schema.Field, open val fieldTypeBuilder: SchemaBuilder) {
     companion object {
         fun getFieldBuilder(field: Schema.Field): FieldBuilder {
             return when (field.schema().type) {
@@ -31,8 +32,14 @@ abstract class FieldBuilder(open val field: Schema.Field) {
 
 
     abstract fun toDefaultValueKotlinCodeString(): String
-    abstract fun toCustomEncoderPartKotlinCodeString(): String
-    abstract fun toCustomDecoderPartKotlinCodeString(): String
+
+    fun toCustomEncoderPartKotlinCodeString(): String {
+        return fieldTypeBuilder.toCustomEncoderPartKotlinCodeString(field.name())
+    }
+
+    fun toCustomDecoderPartKotlinCodeString(): String {
+        return fieldTypeBuilder.toCustomDecoderPartKotlinCodeString()
+    }
 
 
     fun asConstructorVarKotlinCodeString(): String {

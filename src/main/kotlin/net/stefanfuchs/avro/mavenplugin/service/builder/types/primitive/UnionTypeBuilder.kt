@@ -1,6 +1,5 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder.types.primitive
 
-import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asFieldTypeKotlinCodeString
 import org.apache.avro.Schema
 
 internal class UnionTypeBuilder(val schema: Schema) : SchemaBuilder {
