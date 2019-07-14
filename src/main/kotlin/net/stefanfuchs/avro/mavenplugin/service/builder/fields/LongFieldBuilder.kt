@@ -1,25 +1,20 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.primitive.LongTypeBuilder
 import org.apache.avro.Schema
 
-internal object LongFieldBuilder : FieldBuilder {
-    override fun toDefaultValueKotlinCodeString(field: Schema.Field): String {
-        require(field.schema().type == Schema.Type.LONG)
+internal class LongFieldBuilder(override val field: Schema.Field) : FieldBuilder(field) {
+    private val longTypeBuilder = LongTypeBuilder(field.schema())
+
+    override fun toDefaultValueKotlinCodeString(): String {
         return "0L"
     }
 
-    override fun toCustomEncoderPartKotlinCodeString(schema: Schema, fieldName: String): String {
-        require(schema.type == Schema.Type.LONG)
-        return "output.writeLong($fieldName)"
+    override fun toCustomEncoderPartKotlinCodeString(): String {
+        return longTypeBuilder.toCustomEncoderPartKotlinCodeString(field.name())
     }
 
-    override fun toCustomDecoderPartKotlinCodeString(schema: Schema): String {
-        require(schema.type == Schema.Type.LONG)
-        return "input.readLong()"
-    }
-
-    override fun toFieldTypeKotlinCodeString(schema: Schema): String {
-        require(schema.type == Schema.Type.LONG)
-        return "Long"
+    override fun toCustomDecoderPartKotlinCodeString(): String {
+        return longTypeBuilder.toCustomDecoderPartKotlinCodeString()
     }
 }

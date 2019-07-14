@@ -1,25 +1,20 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.primitive.BooleanTypeBuilder
 import org.apache.avro.Schema
 
-internal object BooleanFieldBuilder : FieldBuilder {
-    override fun toDefaultValueKotlinCodeString(field: Schema.Field): String {
-        require(field.schema().type == Schema.Type.BOOLEAN)
+internal class BooleanFieldBuilder(override val field: Schema.Field) : FieldBuilder(field) {
+    private val booleanTypeBuilder = BooleanTypeBuilder(field.schema())
+
+    override fun toDefaultValueKotlinCodeString(): String {
         return "false"
     }
 
-    override fun toCustomEncoderPartKotlinCodeString(schema: Schema, fieldName: String): String {
-        require(schema.type == Schema.Type.BOOLEAN)
-        return "output.writeBoolean($fieldName)"
+    override fun toCustomEncoderPartKotlinCodeString(): String {
+        return booleanTypeBuilder.toCustomEncoderPartKotlinCodeString(field.name())
     }
 
-    override fun toCustomDecoderPartKotlinCodeString(schema: Schema): String {
-        require(schema.type == Schema.Type.BOOLEAN)
-        return "input.readBoolean()"
-    }
-
-    override fun toFieldTypeKotlinCodeString(schema: Schema): String {
-        require(schema.type == Schema.Type.BOOLEAN)
-        return "Boolean"
+    override fun toCustomDecoderPartKotlinCodeString(): String {
+        return booleanTypeBuilder.toCustomDecoderPartKotlinCodeString()
     }
 }

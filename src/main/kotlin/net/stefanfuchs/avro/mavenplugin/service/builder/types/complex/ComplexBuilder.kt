@@ -1,4 +1,4 @@
-package net.stefanfuchs.avro.mavenplugin.service.builder.complex
+package net.stefanfuchs.avro.mavenplugin.service.builder.types.complex
 
 internal interface ComplexBuilder {
     val packageName: String

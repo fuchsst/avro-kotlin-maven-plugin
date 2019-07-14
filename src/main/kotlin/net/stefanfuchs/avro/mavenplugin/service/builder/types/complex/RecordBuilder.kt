@@ -1,4 +1,4 @@
-package net.stefanfuchs.avro.mavenplugin.service.builder.complex
+package net.stefanfuchs.avro.mavenplugin.service.builder.types.complex
 
 import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asAliasGetterSetterKotlinCodeString
 import net.stefanfuchs.avro.mavenplugin.service.builder.fields.asConstructorVarKotlinCodeString
@@ -34,12 +34,12 @@ internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
 
     override fun build(): String {
         return """
-        package ${packageName}
+        package $packageName
 
         ${if (schema.doc?.isNotEmpty() == true) doc else ""}
         @org.apache.avro.specific.AvroGenerated
-        class ${className}(
-            ${schema.fields.map { it.asConstructorVarKotlinCodeString() }.joinToString(",\n" + indendSpaces(3))}
+        data class $className(
+            ${schema.fields.joinToString(",\n" + indendSpaces(3)) { it.asConstructorVarKotlinCodeString() }}
         ) : org.apache.avro.specific.SpecificRecordBase(), org.apache.avro.specific.SpecificRecord {
 
             ${schema.fields.filter { it.aliases().isNotEmpty() }.map { it.asAliasGetterSetterKotlinCodeString() }.joinToString("\n" + indendSpaces(3))}
@@ -54,38 +54,38 @@ internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
                  * Return the BinaryMessageEncoder instance used by this class.
                  * @return the message encoder used by this class
                  */
-                val encoder = org.apache.avro.message.BinaryMessageEncoder<${className}>(model, classSchema)
+                val encoder = org.apache.avro.message.BinaryMessageEncoder<$className>(model, classSchema)
 
                 /**
                  * Return the BinaryMessageDecoder instance used by this class.
                  * @return the message decoder used by this class
                  */
-                val decoder = org.apache.avro.message.BinaryMessageDecoder<${className}>(model, classSchema)
+                val decoder = org.apache.avro.message.BinaryMessageDecoder<$className>(model, classSchema)
 
                 /**
                  * Create a new BinaryMessageDecoder instance for this class that uses the specified [org.apache.avro.message.SchemaStore].
                  * @param resolver a [org.apache.avro.message.SchemaStore] used to find schemas by fingerprint
                  * @return a BinaryMessageDecoder instance for this class backed by the given SchemaStore
                  */
-                fun createDecoder(resolver: org.apache.avro.message.SchemaStore): org.apache.avro.message.BinaryMessageDecoder<${className}> {
+                fun createDecoder(resolver: org.apache.avro.message.SchemaStore): org.apache.avro.message.BinaryMessageDecoder<$className> {
                     return org.apache.avro.message.BinaryMessageDecoder(model, classSchema, resolver)
                 }
 
                 /**
-                 * Deserializes a ${className} from a ByteBuffer.
+                 * Deserializes a $className from a ByteBuffer.
                  * @param b a byte buffer holding serialized data for an instance of this class
-                 * @return a ${className} instance decoded from the given buffer
+                 * @return a $className instance decoded from the given buffer
                  * @throws java.io.IOException if the given bytes could not be deserialized into an instance of this class
                  */
                 @Throws(java.io.IOException::class)
-                fun fromByteBuffer(b: java.nio.ByteBuffer): ${className} {
+                fun fromByteBuffer(b: java.nio.ByteBuffer): $className {
                     return decoder.decode(b)
                 }
 
 
-                private val `WRITER$` = model.createDatumWriter(classSchema) as org.apache.avro.io.DatumWriter<${className}>
+                private val `WRITER$` = model.createDatumWriter(classSchema) as org.apache.avro.io.DatumWriter<$className>
 
-                private val `READER$` = model.createDatumReader(classSchema) as org.apache.avro.io.DatumReader<${className}>
+                private val `READER$` = model.createDatumReader(classSchema) as org.apache.avro.io.DatumReader<$className>
             }
 
             /**
@@ -123,7 +123,7 @@ internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
             // Used by DatumWriter.  Applications should not call.
             override fun get(`field$`: Int): Any? {
                 return when (`field$`) {
-                    ${schema.fields.map { it.asGetIndexFieldMappingKotlinCodeString() }.joinToString("\n" + indendSpaces(5))}
+                    ${schema.fields.joinToString("\n" + indendSpaces(5)) { it.asGetIndexFieldMappingKotlinCodeString() }}
                     else -> throw org.apache.avro.AvroRuntimeException("Bad index")
                 }
             }
@@ -132,16 +132,14 @@ internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
             override fun put(`field$`: Int, 
                              `value$`: Any) {
                 when (`field$`) {
-                    ${schema.fields.map { it.asPutIndexFieldMappingKotlinCodeString() }.joinToString("\n" + indendSpaces(5))}
+                    ${schema.fields.joinToString("\n" + indendSpaces(5)) { it.asPutIndexFieldMappingKotlinCodeString() }}
                     else -> throw org.apache.avro.AvroRuntimeException("Bad index")
                 }
             }
 
             @Throws(java.io.IOException::class)
             override fun customEncode(output: org.apache.avro.io.Encoder) {
-                ${schema.fields
-                .map { it.schema().asCustomEncoderPartKotlinCodeString("this.${it.name()}").split("\n").joinToString("\n" + indendSpaces(4)) }
-                .joinToString("\n" + indendSpaces(4))}
+                ${schema.fields.joinToString("\n" + indendSpaces(4)) { it.asCustomEncoderPartKotlinCodeString().split("\n").joinToString("\n" + indendSpaces(4)) }}
             }
 
 
@@ -149,13 +147,11 @@ internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
             override fun customDecode(input: org.apache.avro.io.ResolvingDecoder) {
                 val fieldOrder = input.readFieldOrderIfDiff()
                 if (fieldOrder == null) {
-                    ${schema.fields
-                .map { "this.${it.name()} = ${it.schema().asCustomDecoderPartKotlinCodeString().split("\n").joinToString("\n" + indendSpaces(4))}" }
-                .joinToString("\n" + indendSpaces(5))}
+                    ${schema.fields.joinToString("\n" + indendSpaces(5)) { "this.${it.name()} = ${it.asCustomDecoderPartKotlinCodeString().split("\n").joinToString("\n" + indendSpaces(4))}" }}
                 } else {
                     for (i in 0..${schema.fields.size - 1}) {
                         when (fieldOrder[i].pos()) {
-                            ${schema.fields.map { "${it.pos()} -> this.${it.name()} = ${it.schema().asCustomDecoderPartKotlinCodeString()}" }.joinToString("\n" + indendSpaces(7))}
+                            ${schema.fields.joinToString("\n" + indendSpaces(7)) { "${it.pos()} -> this.${it.name()} = ${it.asCustomDecoderPartKotlinCodeString()}" }}
                             else -> throw java.io.IOException("Corrupt ResolvingDecoder.")
                         }
                     }

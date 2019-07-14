@@ -1,6 +1,6 @@
 package net.stefanfuchs.avro.mavenplugin.service
 
-import net.stefanfuchs.avro.mavenplugin.service.builder.complex.ComplexBuilder
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.complex.ComplexBuilder
 import org.slf4j.LoggerFactory
 import java.io.BufferedWriter
 import java.io.File

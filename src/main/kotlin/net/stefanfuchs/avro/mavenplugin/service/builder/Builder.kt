@@ -1,9 +1,9 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder
 
-import net.stefanfuchs.avro.mavenplugin.service.builder.complex.ComplexBuilder
-import net.stefanfuchs.avro.mavenplugin.service.builder.complex.EnumBuilder
-import net.stefanfuchs.avro.mavenplugin.service.builder.complex.FixedBuilder
-import net.stefanfuchs.avro.mavenplugin.service.builder.complex.RecordBuilder
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.complex.ComplexBuilder
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.complex.EnumBuilder
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.complex.FixedBuilder
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.complex.RecordBuilder
 import org.apache.avro.Schema
 import org.slf4j.LoggerFactory
 import java.io.File

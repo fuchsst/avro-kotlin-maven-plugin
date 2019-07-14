@@ -22,16 +22,6 @@
       }
     },
     {
-      "name": "field4",
-      "aliases": [
-        "field4Alias"
-      ],
-      "type": {
-        "type": "array",
-        "items": "boolean"
-      }
-    },
-    {
       "name": "field5",
       "type": [
         "null",
@@ -97,6 +87,16 @@
       "type": {
         "type": "map",
         "values": "bytes"
+      }
+    },
+    {
+      "name": "field4",
+      "aliases": [
+        "field4Alias"
+      ],
+      "type": {
+        "type": "array",
+        "items": "boolean"
       }
     }
   ]

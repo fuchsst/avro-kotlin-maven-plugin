@@ -1,8 +1,8 @@
-package net.stefanfuchs.avro.mavenplugin.service.builder.complex
+package net.stefanfuchs.avro.mavenplugin.service.builder.types.complex
 
 import org.apache.avro.Schema
 
-internal class FixedBuilder(val schema: Schema) : ComplexBuilder {
+internal class EnumBuilder(val schema: Schema) : ComplexBuilder {
     override val packageName: String = schema.namespace
     override val className: String = schema.name
     override val filepath: String = "/${schema.namespace.replace(".", "/")}"
@@ -10,7 +10,7 @@ internal class FixedBuilder(val schema: Schema) : ComplexBuilder {
     override val fullFilename: String = "$filepath/$filename"
 
     init {
-        require(schema.type == Schema.Type.FIXED)
+        require(schema.type == Schema.Type.ENUM)
     }
 
     private val doc: String = """
@@ -19,34 +19,15 @@ internal class FixedBuilder(val schema: Schema) : ComplexBuilder {
         **/
         """.trimIndent()
 
-    //TODO replace code with code for fixed
+
     override fun build(): String {
         return """
-        package ${packageName}
+        package $packageName
 
         ${if (schema.doc?.isNotEmpty() == true) doc else ""}
-        @org.apache.avro.specific.FixedSize(${schema.fixedSize})
         @org.apache.avro.specific.AvroGenerated
-        class ${className} : org.apache.avro.specific.SpecificFixed {
-
-            constructor() : super()
-
-            /**
-             * Creates a new ${className} with the given bytes.
-             * @param bytes The bytes to create the new ${className}.
-             */
-            constructor(bytes: ByteArray) : super(bytes)
-
-            @Throws(java.io.IOException::class)
-            override fun writeExternal(objOutput: java.io.ObjectOutput) {
-                `WRITER$`.write(this, org.apache.avro.specific.SpecificData.getEncoder(objOutput))
-            }
-
-            @Throws(java.io.IOException::class)
-            override fun readExternal(objInput: java.io.ObjectInput) {
-                `READER$`.read(this, org.apache.avro.specific.SpecificData.getDecoder(objInput))
-            }
-
+        enum class $className : org.apache.avro.generic.GenericEnumSymbol<$className> {
+            ${getEnumSymbols()};
 
             override fun getSchema(): org.apache.avro.Schema {
                 return classSchema
@@ -55,10 +36,6 @@ internal class FixedBuilder(val schema: Schema) : ComplexBuilder {
             companion object {
                 private const val serialVersionUID = ${schema.hashCode()}L
                 val classSchema: org.apache.avro.Schema =  org.apache.avro.Schema.Parser().parse("${schema.toString().replace("\"", "\\\"")}");
-
-                private val `WRITER$` = org.apache.avro.specific.SpecificDatumWriter<${className}>(classSchema)
-
-                private val `READER$` = org.apache.avro.specific.SpecificDatumReader<${className}>(classSchema)
             }
         }
         """.trimIndent()
@@ -72,7 +49,7 @@ internal class FixedBuilder(val schema: Schema) : ComplexBuilder {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as FixedBuilder
+        other as EnumBuilder
 
         if (schema != other.schema) return false
 

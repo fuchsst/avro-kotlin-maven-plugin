@@ -1,63 +1,78 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
+
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.primitive.getSchemaBuilder
 import org.apache.avro.JsonProperties
 import org.apache.avro.Schema
 
-internal object FieldBuilderFactory {
-    private val SchemaTypeToFieldBuilderMap: Map<Schema.Type, FieldBuilder> = mapOf(
-            Schema.Type.ENUM to EnumFieldBuilder,
-            Schema.Type.RECORD to RecordFieldBuilder,
-            Schema.Type.FIXED to FixedFieldBuilder,
-            Schema.Type.BOOLEAN to BooleanFieldBuilder,
-            Schema.Type.DOUBLE to DoubleFieldBuilder,
-            Schema.Type.FLOAT to FloatFieldBuilder,
-            Schema.Type.INT to IntFieldBuilder,
-            Schema.Type.LONG to LongFieldBuilder,
-            Schema.Type.STRING to StringFieldBuilder,
-            Schema.Type.MAP to MapFieldBuilder,
-            Schema.Type.ARRAY to ArrayFieldBuilder,
-            Schema.Type.BYTES to BytesFieldBuilder,
-            Schema.Type.UNION to UnionFieldBuilder,
-            Schema.Type.NULL to NullFieldBuilder
-    )
 
-    fun fromSchemaType(type: Schema.Type): FieldBuilder {
-        requireNotNull(SchemaTypeToFieldBuilderMap[type]) { "No FieldBuilder implemented for schema type '$type'!" }
-        return SchemaTypeToFieldBuilderMap[type]!!
+abstract class FieldBuilder(open val field: Schema.Field) {
+    companion object {
+        fun getFieldBuilder(field: Schema.Field): FieldBuilder {
+            return when (field.schema().type) {
+                Schema.Type.ARRAY -> ArrayFieldBuilder(field)
+                Schema.Type.BOOLEAN -> BooleanFieldBuilder(field)
+                Schema.Type.BYTES -> BytesFieldBuilder(field)
+                Schema.Type.DOUBLE -> DoubleFieldBuilder(field)
+                Schema.Type.ENUM -> EnumFieldBuilder(field)
+                Schema.Type.FIXED -> FixedFieldBuilder(field)
+                Schema.Type.FLOAT -> FloatFieldBuilder(field)
+                Schema.Type.INT -> IntFieldBuilder(field)
+                Schema.Type.LONG -> LongFieldBuilder(field)
+                Schema.Type.MAP -> MapFieldBuilder(field)
+                Schema.Type.NULL -> NullFieldBuilder(field)
+                Schema.Type.RECORD -> RecordFieldBuilder(field)
+                Schema.Type.STRING -> StringFieldBuilder(field)
+                Schema.Type.UNION -> UnionFieldBuilder(field)
+                null -> throw AssertionError("Schema type of field ${field.name()} can not be null")
+            }
+        }
+    }
+
+
+    abstract fun toDefaultValueKotlinCodeString(): String
+    abstract fun toCustomEncoderPartKotlinCodeString(): String
+    abstract fun toCustomDecoderPartKotlinCodeString(): String
+
+
+    fun asConstructorVarKotlinCodeString(): String {
+        return "${if (field.doc()?.isNotBlank() == true) (" /**\n" + field.doc() + "*/") else ""} var ${field.name()}: ${field.asFieldTypeKotlinCodeString()} = ${field.asDefaultValueKotlinCodeString()}".trim()
+    }
+
+    fun asDefaultValueKotlinCodeString(): String {
+        return if (field.hasDefaultValue()) {
+            if (field.defaultVal() is JsonProperties.Null) "null" else field.defaultVal().toString()
+        } else if (field.schema().isNullable) {
+            "null"
+        } else {
+            getFieldBuilder(field).toDefaultValueKotlinCodeString()
+        }
+    }
+
+    fun asAliasGetterSetterKotlinCodeString(): String? {
+        return field
+                .aliases().joinToString("\n") {
+                    """var $it: ${field.asFieldTypeKotlinCodeString()}
+                        get() = this.${field.name()}
+                        set(value) {
+                            this.${field.name()} = value
+                        }
+                    """.trimIndent()
+                }
     }
 }
 
-internal interface FieldBuilder {
-    fun toDefaultValueKotlinCodeString(field: Schema.Field): String
-    fun toCustomEncoderPartKotlinCodeString(schema: Schema, fieldName: String): String
-    fun toCustomDecoderPartKotlinCodeString(schema: Schema): String
-    fun toFieldTypeKotlinCodeString(schema: Schema): String
-}
 
 internal fun Schema.Field.asConstructorVarKotlinCodeString(): String {
-    return "${if (this.doc()?.isNotBlank() == true) (" /**\n" + this.doc() + "*/") else ""} var ${this.name()}: ${this.schema().asFieldTypeKotlinCodeString()} = ${this.asDefaultValueKotlinCodeString()}".trim()
+    return FieldBuilder.getFieldBuilder(this).asConstructorVarKotlinCodeString()
 }
 
-private fun Schema.Field.asDefaultValueKotlinCodeString(): String {
-    return if (this.hasDefaultValue()) {
-        if (this.defaultVal() is JsonProperties.Null) "null" else this.defaultVal().toString()
-    } else if (this.schema().isNullable) {
-        "null"
-    } else {
-        FieldBuilderFactory.fromSchemaType(this.schema().type).toDefaultValueKotlinCodeString(this)
-    }
+internal fun Schema.Field.asDefaultValueKotlinCodeString(): String {
+    return FieldBuilder.getFieldBuilder(this).asDefaultValueKotlinCodeString()
 }
 
 internal fun Schema.Field.asAliasGetterSetterKotlinCodeString(): String? {
-    return this
-            .aliases().joinToString("\n") {
-                """var $it: ${this.schema().asFieldTypeKotlinCodeString()}
-                        get() = this.${this.name()}
-                        set(value) {
-                            this.${this.name()} = value
-                        }
-                    """.trimIndent()
-            }
+    return FieldBuilder.getFieldBuilder(this).asAliasGetterSetterKotlinCodeString()
 }
 
 internal fun Schema.Field.asGetIndexFieldMappingKotlinCodeString(): String {
@@ -65,17 +80,21 @@ internal fun Schema.Field.asGetIndexFieldMappingKotlinCodeString(): String {
 }
 
 internal fun Schema.Field.asPutIndexFieldMappingKotlinCodeString(): String {
-    return "${this.pos()} -> this.${this.name()} = `value\$` as ${this.schema().asFieldTypeKotlinCodeString()}"
+    return "${this.pos()} -> this.${this.name()} = `value\$` as ${this.asInternalFieldTypeKotlinCodeString()}"
 }
 
-internal fun Schema.asCustomEncoderPartKotlinCodeString(fieldName: String): String {
-    return FieldBuilderFactory.fromSchemaType(this.type).toCustomEncoderPartKotlinCodeString(this, fieldName)
+internal fun Schema.Field.asCustomEncoderPartKotlinCodeString(): String {
+    return FieldBuilder.getFieldBuilder(this).toCustomEncoderPartKotlinCodeString()
 }
 
-internal fun Schema.asCustomDecoderPartKotlinCodeString(): String {
-    return FieldBuilderFactory.fromSchemaType(this.type).toCustomDecoderPartKotlinCodeString(this)
+internal fun Schema.Field.asCustomDecoderPartKotlinCodeString(): String {
+    return FieldBuilder.getFieldBuilder(this).toCustomDecoderPartKotlinCodeString()
 }
 
-internal fun Schema.asFieldTypeKotlinCodeString(): String {
-    return FieldBuilderFactory.fromSchemaType(this.type).toFieldTypeKotlinCodeString(this)
+internal fun Schema.Field.asFieldTypeKotlinCodeString(): String {
+    return getSchemaBuilder(this.schema()).toFieldTypeKotlinCodeString()
+}
+
+internal fun Schema.Field.asInternalFieldTypeKotlinCodeString(): String {
+    return getSchemaBuilder(this.schema()).toInternalFieldTypeKotlinCodeString()
 }

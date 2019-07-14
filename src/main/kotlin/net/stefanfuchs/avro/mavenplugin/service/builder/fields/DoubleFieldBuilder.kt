@@ -1,25 +1,21 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.primitive.DoubleTypeBuilder
 import org.apache.avro.Schema
 
-internal object DoubleFieldBuilder : FieldBuilder {
-    override fun toDefaultValueKotlinCodeString(field: Schema.Field): String {
-        require(field.schema().type == Schema.Type.DOUBLE)
+internal class DoubleFieldBuilder (override val field: Schema.Field) : FieldBuilder(field) {
+    private val doubleTypeBuilder= DoubleTypeBuilder(field.schema())
+
+    override fun toDefaultValueKotlinCodeString(): String {
         return "0.0"
     }
 
-    override fun toCustomEncoderPartKotlinCodeString(schema: Schema, fieldName: String): String {
-        require(schema.type == Schema.Type.DOUBLE)
-        return "output.writeDouble($fieldName)"
+    override fun toCustomEncoderPartKotlinCodeString(): String {
+        return doubleTypeBuilder.toCustomEncoderPartKotlinCodeString(field.name())
     }
 
-    override fun toCustomDecoderPartKotlinCodeString(schema: Schema): String {
-        require(schema.type == Schema.Type.DOUBLE)
-        return "input.readDouble()"
+    override fun toCustomDecoderPartKotlinCodeString(): String {
+        return doubleTypeBuilder.toCustomDecoderPartKotlinCodeString()
     }
 
-    override fun toFieldTypeKotlinCodeString(schema: Schema): String {
-        require(schema.type == Schema.Type.DOUBLE)
-        return "Double"
-    }
 }

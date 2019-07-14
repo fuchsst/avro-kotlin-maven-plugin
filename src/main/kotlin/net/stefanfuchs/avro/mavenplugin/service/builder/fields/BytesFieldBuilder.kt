@@ -1,25 +1,20 @@
 package net.stefanfuchs.avro.mavenplugin.service.builder.fields
 
+import net.stefanfuchs.avro.mavenplugin.service.builder.types.primitive.BytesTypeBuilder
 import org.apache.avro.Schema
 
-internal object BytesFieldBuilder : FieldBuilder {
-    override fun toDefaultValueKotlinCodeString(field: Schema.Field): String {
-        require(field.schema().type == Schema.Type.BYTES)
+internal class BytesFieldBuilder (override val field: Schema.Field) : FieldBuilder(field) {
+    private val bytesTypeBuilder=BytesTypeBuilder(field.schema())
+
+    override fun toDefaultValueKotlinCodeString(): String {
         return "ByteArray(0)"
     }
 
-    override fun toCustomEncoderPartKotlinCodeString(schema: Schema, fieldName: String): String {
-        require(schema.type == Schema.Type.BYTES)
-        return "output.writeBytes($fieldName)"
+    override fun toCustomEncoderPartKotlinCodeString(): String {
+        return bytesTypeBuilder.toCustomEncoderPartKotlinCodeString(field.name())
     }
 
-    override fun toCustomDecoderPartKotlinCodeString(schema: Schema): String {
-        require(schema.type == Schema.Type.BYTES)
-        return "input.readBytes(null).array()"
-    }
-
-    override fun toFieldTypeKotlinCodeString(schema: Schema): String {
-        require(schema.type == Schema.Type.BYTES)
-        return "ByteArray"
+    override fun toCustomDecoderPartKotlinCodeString(): String {
+        return bytesTypeBuilder.toCustomDecoderPartKotlinCodeString()
     }
 }
