@@ -38,17 +38,18 @@ internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
 
         ${if (schema.doc?.isNotEmpty() == true) doc else ""}
         @org.apache.avro.specific.AvroGenerated
+        @Suppress("UNCHECKED_CAST")
         data class $className(
-            ${schema.fields.joinToString(",\n" + indendSpaces(3)) { it.asConstructorVarKotlinCodeString() }}
+            ${getConstructorFieldsCodeString()}
         ) : org.apache.avro.specific.SpecificRecordBase(), org.apache.avro.specific.SpecificRecord {
 
-            ${schema.fields.filter { it.aliases().isNotEmpty() }.map { it.asAliasGetterSetterKotlinCodeString() }.joinToString("\n" + indendSpaces(3))}
+            ${getAliasesCodeString()}
 
             companion object {
                 private const val serialVersionUID = ${schema.hashCode()}L
                 private val model = org.apache.avro.specific.SpecificData()
 
-                val classSchema: org.apache.avro.Schema = org.apache.avro.Schema.Parser().parse("${schema.toString().replace("\"", "\\\"")}")
+                val classSchema: org.apache.avro.Schema = org.apache.avro.Schema.Parser().parse("${getSchemaCodeString()}")
 
                 /**
                  * Return the BinaryMessageEncoder instance used by this class.
@@ -123,23 +124,23 @@ internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
             // Used by DatumWriter.  Applications should not call.
             override fun get(`field$`: Int): Any? {
                 return when (`field$`) {
-                    ${schema.fields.joinToString("\n" + indendSpaces(5)) { it.asGetIndexFieldMappingKotlinCodeString() }}
+                    ${getGetFieldsCodeString()}
                     else -> throw org.apache.avro.AvroRuntimeException("Bad index")
                 }
             }
 
             // Used by DatumReader.  Applications should not call.
             override fun put(`field$`: Int, 
-                             `value$`: Any) {
+                             `value$`: Any?) {
                 when (`field$`) {
-                    ${schema.fields.joinToString("\n" + indendSpaces(5)) { it.asPutIndexFieldMappingKotlinCodeString() }}
+                    ${getPutFieldsCodeString()}
                     else -> throw org.apache.avro.AvroRuntimeException("Bad index")
                 }
             }
 
             @Throws(java.io.IOException::class)
             override fun customEncode(output: org.apache.avro.io.Encoder) {
-                ${schema.fields.joinToString("\n" + indendSpaces(4)) { it.asCustomEncoderPartKotlinCodeString().split("\n").joinToString("\n" + indendSpaces(4)) }}
+                ${getCustomEncoderFieldsCodeString()}
             }
 
 
@@ -147,11 +148,11 @@ internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
             override fun customDecode(input: org.apache.avro.io.ResolvingDecoder) {
                 val fieldOrder = input.readFieldOrderIfDiff()
                 if (fieldOrder == null) {
-                    ${schema.fields.joinToString("\n" + indendSpaces(5)) { "this.${it.name()} = ${it.asCustomDecoderPartKotlinCodeString().split("\n").joinToString("\n" + indendSpaces(4))}" }}
+                    ${getCustomDecoderFieldsCodeString()}
                 } else {
                     for (i in 0..${schema.fields.size - 1}) {
                         when (fieldOrder[i].pos()) {
-                            ${schema.fields.joinToString("\n" + indendSpaces(7)) { "${it.pos()} -> this.${it.name()} = ${it.asCustomDecoderPartKotlinCodeString()}" }}
+                            ${getCustomDecoderFieldsByOrderCodeString()}
                             else -> throw java.io.IOException("Corrupt ResolvingDecoder.")
                         }
                     }
@@ -160,6 +161,44 @@ internal class RecordBuilder(val schema: Schema) : ComplexBuilder {
         }
         """.trimIndent()
     }
+
+    private fun getSchemaCodeString() = schema.toString().replace("\"", "\\\"")
+
+    private fun getConstructorFieldsCodeString() = schema
+            .fields
+            .joinToString(",\n" + indendSpaces(3)) { it.asConstructorVarKotlinCodeString() }
+
+    private fun getAliasesCodeString() = schema
+            .fields
+            .filter { it.aliases().isNotEmpty() }
+            .flatMap { it.asAliasGetterSetterKotlinCodeString()!!.split("\n") }
+            .joinToString("\n" + indendSpaces(3))
+
+    private fun getGetFieldsCodeString() = schema
+            .fields
+            .joinToString("\n" + indendSpaces(5)) { it.asGetIndexFieldMappingKotlinCodeString() }
+
+    private fun getPutFieldsCodeString() = schema
+            .fields
+            .joinToString("\n" + indendSpaces(5)) { it.asPutIndexFieldMappingKotlinCodeString() }
+
+    private fun getCustomEncoderFieldsCodeString() = schema
+            .fields
+            .joinToString("\n" + indendSpaces(4)) {
+                it.asCustomEncoderPartKotlinCodeString().split("\n").joinToString("\n" + indendSpaces(4))
+            }
+
+    private fun getCustomDecoderFieldsCodeString() = schema
+            .fields
+            .joinToString("\n" + indendSpaces(5)) {
+                "this.${it.name()} = ${it.asCustomDecoderPartKotlinCodeString().split("\n").joinToString("\n" + indendSpaces(4))}"
+            }
+
+    private fun getCustomDecoderFieldsByOrderCodeString() = schema
+            .fields
+            .joinToString("\n" + indendSpaces(7)) {
+                "${it.pos()} -> this.${it.name()} = ${it.asCustomDecoderPartKotlinCodeString()}"
+            }
 
     private fun indendSpaces(level: Int): String {
         val spacesPerLevel = 4

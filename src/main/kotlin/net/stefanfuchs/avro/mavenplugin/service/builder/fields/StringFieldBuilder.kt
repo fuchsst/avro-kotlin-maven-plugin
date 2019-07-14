@@ -9,4 +9,9 @@ internal class StringFieldBuilder(override val field: Schema.Field) : FieldBuild
         return """"""""
     }
 
+
+    override fun toPutIndexFieldMappingKotlinCodeString(): String {
+        return "${field.pos()} -> this.${field.name()} = if (`value\$` is org.apache.avro.util.Utf8) `value\$`.toString() else (`value\$` as String)"
+    }
+
 }

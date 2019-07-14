@@ -42,6 +42,15 @@ internal abstract class FieldBuilder(open val field: Schema.Field, open val fiel
     }
 
 
+    fun toGetIndexFieldMappingKotlinCodeString(): String {
+        return "${field.pos()} -> this.${field.name()}"
+    }
+
+    open fun toPutIndexFieldMappingKotlinCodeString(): String {
+        return "${field.pos()} -> this.${field.name()} = `value\$` as ${field.asInternalFieldTypeKotlinCodeString()}"
+    }
+
+
     fun asConstructorVarKotlinCodeString(): String {
         return "${if (field.doc()?.isNotBlank() == true) (" /**\n" + field.doc() + "*/") else ""} var ${field.name()}: ${field.asFieldTypeKotlinCodeString()} = ${field.asDefaultValueKotlinCodeString()}".trim()
     }
@@ -83,11 +92,11 @@ internal fun Schema.Field.asAliasGetterSetterKotlinCodeString(): String? {
 }
 
 internal fun Schema.Field.asGetIndexFieldMappingKotlinCodeString(): String {
-    return "${this.pos()} -> this.${this.name()}"
+    return FieldBuilder.getFieldBuilder(this).toGetIndexFieldMappingKotlinCodeString()
 }
 
 internal fun Schema.Field.asPutIndexFieldMappingKotlinCodeString(): String {
-    return "${this.pos()} -> this.${this.name()} = `value\$` as ${this.asInternalFieldTypeKotlinCodeString()}"
+    return FieldBuilder.getFieldBuilder(this).toPutIndexFieldMappingKotlinCodeString()
 }
 
 internal fun Schema.Field.asCustomEncoderPartKotlinCodeString(): String {

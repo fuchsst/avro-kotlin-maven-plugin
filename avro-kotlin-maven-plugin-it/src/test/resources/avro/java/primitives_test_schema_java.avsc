@@ -1,0 +1,50 @@
+{
+  "type": "record",
+  "name": "PrimitivesTypesAvroClass",
+  "namespace": "net.stefanfuchs.avro.mavenplugin.test.java",
+  "fields": [
+    {
+      "name": "intField",
+      "type": "int",
+      "default": -1
+    },
+    {
+      "name": "longTimestampField",
+      "type": "long",
+      "default": 0,
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "stringField",
+      "type": "string"
+    },
+    {
+      "name": "optionalStringField",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "intDateField",
+      "type": "int",
+      "logicalType": "date"
+    },
+    {
+      "name": "floatField",
+      "aliases": [
+        "floatFieldAlias"
+      ],
+      "type": "float"
+    },
+    {
+      "name": "doubleField",
+      "aliases": [
+        "doubleFieldAlias1",
+        "doubleFieldAlias2"
+      ],
+      "type": "double"
+    }
+  ]
+}

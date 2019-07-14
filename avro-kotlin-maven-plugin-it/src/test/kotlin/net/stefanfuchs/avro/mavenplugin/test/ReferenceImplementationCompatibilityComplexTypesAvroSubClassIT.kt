@@ -7,11 +7,11 @@ import java.io.ByteArrayOutputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 
-internal class ReferenceImplementationCompatibilityTestAvroClassSubClassIT {
+internal class ReferenceImplementationCompatibilityComplexTypesAvroSubClassIT {
 
     @Test
     fun deserializeKotlinSerializedAvroWithJavaAvro() {
-        val kotlinAvro = net.stefanfuchs.avro.mavenplugin.test.kotlin.TestAvroClassSubClass()
+        val kotlinAvro = net.stefanfuchs.avro.mavenplugin.test.kotlin.ComplexTypesAvroSubClass()
         kotlinAvro.subField1 = 123.45F
         kotlinAvro.subField2 = 2345.6789
 
@@ -23,7 +23,7 @@ internal class ReferenceImplementationCompatibilityTestAvroClassSubClassIT {
 
         val inputStream = ByteArrayInputStream(outputStream.toByteArray())
         val objInput = ObjectInputStream(inputStream)
-        val javaAvro = net.stefanfuchs.avro.mavenplugin.test.java.TestAvroClassSubClass()
+        val javaAvro = net.stefanfuchs.avro.mavenplugin.test.java.ComplexTypesAvroSubClass()
         javaAvro.readExternal(objInput)
 
         Assertions.assertThat(javaAvro.getSubField1()).isCloseTo(kotlinAvro.subField1, Assertions.offset(0.0001F))
@@ -32,7 +32,7 @@ internal class ReferenceImplementationCompatibilityTestAvroClassSubClassIT {
 
     @Test
     fun deserializeJavaSerializedAvroWithKotlinAvro() {
-        val javaAvro = net.stefanfuchs.avro.mavenplugin.test.java.TestAvroClassSubClass()
+        val javaAvro = net.stefanfuchs.avro.mavenplugin.test.java.ComplexTypesAvroSubClass()
         javaAvro.setSubField1(123.45F)
         javaAvro.setSubField2(2345.6789)
 
@@ -44,7 +44,7 @@ internal class ReferenceImplementationCompatibilityTestAvroClassSubClassIT {
 
         val inputStream = ByteArrayInputStream(outputStream.toByteArray())
         val objInput = ObjectInputStream(inputStream)
-        val kotlinAvro = net.stefanfuchs.avro.mavenplugin.test.kotlin.TestAvroClassSubClass()
+        val kotlinAvro = net.stefanfuchs.avro.mavenplugin.test.kotlin.ComplexTypesAvroSubClass()
         kotlinAvro.readExternal(objInput)
 
         Assertions.assertThat(kotlinAvro.subField1).isCloseTo(javaAvro.getSubField1(), Assertions.offset(0.0001F))

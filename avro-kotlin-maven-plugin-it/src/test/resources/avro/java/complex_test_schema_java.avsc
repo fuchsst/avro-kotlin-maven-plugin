@@ -1,41 +1,17 @@
 {
   "type": "record",
-  "name": "TestAvroClass",
+  "name": "ComplexTypesAvroClass",
   "namespace": "net.stefanfuchs.avro.mavenplugin.test.java",
   "fields": [
     {
-      "name": "field1",
-      "type": "int",
-      "default": -1
-    },
-    {
-      "name": "field2",
-      "type": "long",
-      "default": 0,
-      "logicalType": "timestamp-millis"
-    },
-    {
-      "name": "field3",
+      "name": "mapOfStringsField",
       "type": {
         "type": "map",
         "values": "string"
       }
     },
     {
-      "name": "field5",
-      "type": [
-        "null",
-        "string"
-      ],
-      "default": null
-    },
-    {
-      "name": "field6",
-      "type": "int",
-      "logicalType": "date"
-    },
-    {
-      "name": "field7",
+      "name": "enumField",
       "type": [
         "null",
         {
@@ -51,22 +27,18 @@
       ]
     },
     {
-      "name": "field8",
-      "type": "bytes"
-    },
-    {
-      "name": "field9",
+      "name": "fixedField",
       "type": {
         "type": "fixed",
         "size": 16,
-        "name": "md5"
+        "name": "Md5"
       }
     },
     {
-      "name": "field10",
+      "name": "recordField",
       "type": {
         "type": "record",
-        "name": "TestAvroClassSubClass",
+        "name": "ComplexTypesAvroSubClass",
         "fields": [
           {
             "name": "subField1",
@@ -80,24 +52,18 @@
       }
     },
     {
-      "name": "field11",
+      "name": "arrayOfBooleanField",
       "aliases": [
-        "field11Alias"
-      ],
-      "type": {
-        "type": "map",
-        "values": "bytes"
-      }
-    },
-    {
-      "name": "field4",
-      "aliases": [
-        "field4Alias"
+        "arrayOfBooleanAlias"
       ],
       "type": {
         "type": "array",
         "items": "boolean"
       }
+    },
+    {
+      "name": "bytesField",
+      "type": "bytes"
     }
   ]
 }
